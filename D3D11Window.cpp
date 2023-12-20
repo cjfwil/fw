@@ -227,7 +227,7 @@ HRESULT CreateD3D11WindowResource()
     return (hr);
 }
 
-HRESULT CreateAndShowD3D11Window(HINSTANCE arg_hInstance, char* windowTitle = "D3D11 Window")
+HRESULT CreateAndShowD3D11Window(HINSTANCE arg_hInstance = NULL, char* windowTitle = "D3D11 Window")
 {
     HRESULT hr = S_OK;
     hr = CreateWin32FullscreenBorderlessWindow(arg_hInstance, windowTitle);

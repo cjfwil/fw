@@ -1,8 +1,8 @@
 #include "D3D11Window.cpp"
 
-INT WINAPI WinMain(HINSTANCE arg_hInstance, HINSTANCE, LPSTR, int)
+INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-    if (SUCCEEDED(CreateAndShowD3D11Window(arg_hInstance)))
+    if (SUCCEEDED(CreateAndShowD3D11Window()))
     {
         bool recievedMessage;
         MSG msg;
