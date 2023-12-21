@@ -1,3 +1,6 @@
+#ifndef D3D11_WINDOW_CPP
+#define D3D11_WINDOW_CPP
+
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "shell32.lib")
@@ -34,6 +37,11 @@ struct D3D11_Window
     ID3D11DepthStencilView *depthStencilView;
 
     D3D11_VIEWPORT viewport;
+
+    float AspectRatio()
+    {
+        return static_cast<float>(backBufferDesc.Width) / static_cast<float>(backBufferDesc.Height);
+    }
 } d3d11_window;
 
 LRESULT CALLBACK StaticWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -63,7 +71,7 @@ LRESULT CALLBACK StaticWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     return (DefWindowProcA(hWnd, uMsg, wParam, lParam));
 }
 
-HRESULT CreateWin32FullscreenBorderlessWindow(HINSTANCE arg_hInstance, char* windowTitle)
+HRESULT CreateWin32FullscreenBorderlessWindow(HINSTANCE arg_hInstance, char *windowTitle)
 {
     d3d11_window.hInstance = arg_hInstance;
     if (d3d11_window.hInstance == NULL)
@@ -227,7 +235,7 @@ HRESULT CreateD3D11WindowResource()
     return (hr);
 }
 
-HRESULT CreateAndShowD3D11Window(HINSTANCE arg_hInstance = NULL, char* windowTitle = "D3D11 Window")
+HRESULT CreateAndShowD3D11Window(HINSTANCE arg_hInstance = NULL, char *windowTitle = "D3D11 Window")
 {
     HRESULT hr = S_OK;
     hr = CreateWin32FullscreenBorderlessWindow(arg_hInstance, windowTitle);
@@ -244,5 +252,7 @@ HRESULT CreateAndShowD3D11Window(HINSTANCE arg_hInstance = NULL, char* windowTit
             }
         }
     }
-    return(hr);
+    return (hr);
 }
+
+#endif

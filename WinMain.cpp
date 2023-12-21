@@ -1,4 +1,6 @@
 #include "D3D11Window.cpp"
+#include "D3D11Renderer.cpp"
+
 
 INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
@@ -17,10 +19,10 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                 DispatchMessage(&msg);
             }
             else
-            {                
-                // Update();                
+            {
+                // Update();
                 // Render();
-                const float teal [] = { 0.098f, 0.439f, 0.439f, 1.000f };
+                const float teal[] = {0.098f, 0.439f, 0.439f, 1.000f};
                 d3d11_window.context->ClearRenderTargetView(d3d11_window.renderTarget, teal);
                 d3d11_window.context->ClearDepthStencilView(d3d11_window.depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
                 d3d11_window.swapChain->Present(1, 0);
