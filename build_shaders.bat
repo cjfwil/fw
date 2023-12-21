@@ -1,0 +1,2 @@
+fxc /T vs_5_0 /E vs_main /Fo CubeVertexShader.cso Shader.hlsl
+fxc /T ps_5_0 /E ps_main /Fo CubePixelShader.cso Shader.hlsl

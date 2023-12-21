@@ -71,7 +71,7 @@ LRESULT CALLBACK StaticWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     return (DefWindowProcA(hWnd, uMsg, wParam, lParam));
 }
 
-HRESULT CreateWin32FullscreenBorderlessWindow(HINSTANCE arg_hInstance, char *windowTitle)
+HRESULT CreateWin32FullscreenBorderlessWindow(HINSTANCE arg_hInstance = NULL, char *windowTitle = "D3D11 Window")
 {
     d3d11_window.hInstance = arg_hInstance;
     if (d3d11_window.hInstance == NULL)
@@ -235,24 +235,5 @@ HRESULT CreateD3D11WindowResource()
     return (hr);
 }
 
-HRESULT CreateAndShowD3D11Window(HINSTANCE arg_hInstance = NULL, char *windowTitle = "D3D11 Window")
-{
-    HRESULT hr = S_OK;
-    hr = CreateWin32FullscreenBorderlessWindow(arg_hInstance, windowTitle);
-    if (SUCCEEDED(hr))
-    {
-        hr = CreateD3D11DeviceResources();
-        if (SUCCEEDED(hr))
-        {
-            hr = CreateD3D11WindowResource();
-            if (SUCCEEDED(hr))
-            {
-                if (!IsWindowVisible(d3d11_window.hwnd))
-                    ShowWindow(d3d11_window.hwnd, SW_SHOW);
-            }
-        }
-    }
-    return (hr);
-}
 
 #endif

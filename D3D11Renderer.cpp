@@ -22,9 +22,12 @@ typedef struct _constantBufferStruct
     DirectX::XMFLOAT4X4 view;
     DirectX::XMFLOAT4X4 projection;
 } ConstantBufferStruct;
+static_assert((sizeof(ConstantBufferStruct) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
+
 
 ConstantBufferStruct constantBufferData;
 unsigned int indexCount;
+unsigned int frameCount;
 
 ID3D11Buffer *constantBuffer;
 ID3D11Buffer *vertexBuffer;
