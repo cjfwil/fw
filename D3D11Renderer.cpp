@@ -72,7 +72,7 @@ void CreateViewAndPerspective()
 
 void CreateWindowSizeDependentResources()
 {
-    // CreateViewAndPerspective();
+    CreateViewAndPerspective();
 }
 
 HRESULT CreateShaders()
@@ -87,12 +87,16 @@ HRESULT CreateShaders()
     size_t bytesRead = 0;
     bytes = new BYTE[destSize];
     fopen_s(&vShader, "CubeVertexShader.cso", "rb");
-    bytesRead = fread_s(bytes, destSize, 1, 4096, vShader);
+    bytesRead = fread_s(bytes, destSize, 1, 4096, vShader);    
     hr = device->CreateVertexShader(
         bytes,
         bytesRead,
         nullptr,
         &vertexShader);
+
+    if (FAILED(hr)) {
+        //TODO:
+    }
 
     D3D11_INPUT_ELEMENT_DESC iaDesc[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,

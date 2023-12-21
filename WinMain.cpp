@@ -90,10 +90,10 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
         if (SUCCEEDED(hr))
         {
             CreateDeviceDependentResources();
-            CreateWindowSizeDependentResources();
-            hr = CreateD3D11WindowResource();
+            hr = CreateD3D11WindowResource();            
             if (SUCCEEDED(hr))
             {
+                CreateWindowSizeDependentResources();
                 if (!IsWindowVisible(d3d11_window.hwnd))
                     ShowWindow(d3d11_window.hwnd, SW_SHOW);
 
