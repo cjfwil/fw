@@ -18,7 +18,7 @@ void Render()
 {
     // Use the Direct3D device context to draw.
     ID3D11DeviceContext *context = d3d11_window.context;
-    ID3D11RenderTargetView *renderTarget = d3d11_window.renderTarget;
+    ID3D11RenderTargetView *renderTarget = d3d11_window.renderTargetView;
     ID3D11DepthStencilView *depthStencil = d3d11_window.depthStencilView;
     context->UpdateSubresource(
         constantBuffer,
@@ -38,8 +38,7 @@ void Render()
         1.0f,
         0);
     // Set the render target.
-    context->OMSetRenderTargets(
-        1,
+    context->OMSetRenderTargets(1,
         &renderTarget,
         depthStencil);
     // Set up the IA stage by setting the input topology and layout.
@@ -83,7 +82,7 @@ void Render()
 INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
     HRESULT hr = S_OK;
-    hr = CreateWin32FullscreenBorderlessWindow();
+    hr = CreateWin32Window();
     if (SUCCEEDED(hr))
     {
         hr = CreateD3D11DeviceResources();
@@ -96,9 +95,6 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                 CreateWindowSizeDependentResources();
                 if (!IsWindowVisible(d3d11_window.hwnd))
                     ShowWindow(d3d11_window.hwnd, SW_SHOW);
-
-
-
 
                 bool recievedMessage;
                 MSG msg;
@@ -114,6 +110,10 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                     }
                     else
                     {
+                        if (d3d11_window.resize) {
+                            CreateWindowSizeDependentResources();
+                            d3d11_window.resize = FALSE;
+                        }
                         Update();
                         Render();                        
                         d3d11_window.swapChain->Present(1, 0);

@@ -1,6 +1,7 @@
 #ifndef D3D11_RENDERER_CPP
 #define D3D11_RENDERER_CPP
 
+#pragma warning(push, 0)
 #include <windows.h>
 #include <d3d11.h>
 #include <dxgi.h>
@@ -9,6 +10,7 @@
 
 #include <stdio.h>
 #include <directxmath.h>
+#pragma warning(pop)
 
 #include "D3D11Window.cpp"
 
