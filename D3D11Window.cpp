@@ -284,7 +284,7 @@ HRESULT CreateD3D11WindowResource()
     IDXGIDevice3 *dxgiDevice;
     d3d11_window.device->QueryInterface(__uuidof(IDXGIDevice3), reinterpret_cast<void **>(&dxgiDevice));
     IDXGIAdapter *adapter;
-    IDXGIFactory *factory;
+    IDXGIFactory *factory = NULL;
 
     hr = dxgiDevice->GetAdapter(&adapter);
     if (SUCCEEDED(hr))
@@ -298,7 +298,7 @@ HRESULT CreateD3D11WindowResource()
     }
     dxgiDevice->Release();
     adapter->Release();
-    factory->Release();
+    if (factory != NULL) factory->Release();
     return (hr);
 }
 

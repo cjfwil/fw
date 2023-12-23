@@ -26,7 +26,6 @@ typedef struct _constantBufferStruct
 } ConstantBufferStruct;
 static_assert((sizeof(ConstantBufferStruct) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
 
-
 ConstantBufferStruct constantBufferData;
 unsigned int indexCount;
 unsigned int frameCount;
@@ -41,11 +40,13 @@ typedef struct _vertexPositionColor
     DirectX::XMFLOAT3 color;
 } VertexPositionColor;
 
+DirectX::XMVECTOR eye = DirectX::XMVectorSet(0.0f, 0.7f, 1.5f, 0.f);
+DirectX::XMVECTOR at = DirectX::XMVectorSet(0.0f, -0.1f, 0.0f, 0.f);
+DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.f);
+
 void CreateViewAndPerspective()
 {
-    DirectX::XMVECTOR eye = DirectX::XMVectorSet(0.0f, 0.7f, 1.5f, 0.f);
-    DirectX::XMVECTOR at = DirectX::XMVectorSet(0.0f, -0.1f, 0.0f, 0.f);
-    DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.f);
+    DirectX::XMStoreFloat4x4(&constantBufferData.world, DirectX::XMMatrixIdentity());
 
     DirectX::XMStoreFloat4x4(
         &constantBufferData.view,
@@ -65,8 +66,8 @@ void CreateViewAndPerspective()
         DirectX::XMMatrixTranspose(
             DirectX::XMMatrixPerspectiveFovRH(
                 2.0f * atanf(tanf(DirectX::XMConvertToRadians(70) *
-                                          0.5f) /
-                                 aspectRatioY),
+                                  0.5f) /
+                             aspectRatioY),
                 aspectRatioX,
                 0.01f,
                 100.0f)));
@@ -89,15 +90,16 @@ HRESULT CreateShaders()
     size_t bytesRead = 0;
     bytes = new BYTE[destSize];
     fopen_s(&vShader, "CubeVertexShader.cso", "rb");
-    bytesRead = fread_s(bytes, destSize, 1, 4096, vShader);    
+    bytesRead = fread_s(bytes, destSize, 1, 4096, vShader);
     hr = device->CreateVertexShader(
         bytes,
         bytesRead,
         nullptr,
         &vertexShader);
 
-    if (FAILED(hr)) {
-        //TODO:
+    if (FAILED(hr))
+    {
+        // TODO:
     }
 
     D3D11_INPUT_ELEMENT_DESC iaDesc[] = {
