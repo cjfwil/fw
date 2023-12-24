@@ -22,12 +22,15 @@
 #define DEFAULT_WINDOW_WIDTH 640
 #define DEFAULT_WINDOW_HEIGHT 480
 
+int dx = 0;
+int dy = 0;
+
 struct D3D11_Window
 {
     HINSTANCE hInstance;
     char *windowClassName = "D3D11WindowClass";
     HWND hwnd;
-    RECT rc;
+    RECT rc; // TODO: Remove?
     HMENU hMenu;
 
     D3D_FEATURE_LEVEL featureLevel;
@@ -37,7 +40,7 @@ struct D3D11_Window
 
     ID3D11Texture2D *backBuffer;
     ID3D11RenderTargetView *renderTargetView;
-    
+
     UINT width;
     UINT height;
 
@@ -49,7 +52,7 @@ struct D3D11_Window
     BOOL resize;
 
     float AspectRatio()
-    {        
+    {
         return static_cast<float>(width) / static_cast<float>(height);
     }
 } d3d11_window;
@@ -122,15 +125,39 @@ LRESULT CALLBACK StaticWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     static BOOL isSizing = FALSE;
     switch (uMsg)
     {
+    case WM_INPUT:
+    {
+        UINT size;
+        GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &size, sizeof(RAWINPUTHEADER));
+
+        if (size <= sizeof(RAWINPUT))
+        {
+            static BYTE rawInputBuffer[sizeof(RAWINPUT)];
+            if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, rawInputBuffer, &size, sizeof(RAWINPUTHEADER)) == size)
+            {
+                RAWINPUT *ri = (RAWINPUT *)rawInputBuffer;
+                if (ri->header.dwType == RIM_TYPEMOUSE && (ri->data.mouse.lLastX != 0 || ri->data.mouse.lLastY != 0))
+                {
+                    // char buffer[50];
+                    // wsprintfA(buffer, "%d, %d\n", ri->data.mouse.lLastX, ri->data.mouse.lLastY);
+                    // OutputDebugStringA(buffer);
+                    dx = ri->data.mouse.lLastX;
+                    dy = ri->data.mouse.lLastY;
+                }
+            }
+        }
+    }
+    break;
     case WM_EXITSIZEMOVE:
     case WM_SIZE:
     {
+        RECT rc = {};
+        GetClientRect(hWnd, &rc);
+        d3d11_window.rc = rc;
         if (uMsg == WM_EXITSIZEMOVE)
             isSizing = FALSE;
         if (!isSizing)
         {
-            RECT rc = {};
-            GetClientRect(hWnd, &rc);
             UINT Width = (UINT)(rc.right - rc.left);
             UINT Height = (UINT)(rc.bottom - rc.top);
             ConfigBackBuffer(Width, Height);
@@ -298,7 +325,8 @@ HRESULT CreateD3D11WindowResource()
     }
     dxgiDevice->Release();
     adapter->Release();
-    if (factory != NULL) factory->Release();
+    if (factory != NULL)
+        factory->Release();
     return (hr);
 }
 

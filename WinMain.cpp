@@ -1,18 +1,104 @@
 #include "D3D11Window.cpp"
 #include "D3D11Renderer.cpp"
 
+static bool mouseLookOn = true;
+
+void Init()
+{
+    RECT rc;
+    GetClientRect(d3d11_window.hwnd, &rc);
+    MapWindowPoints(d3d11_window.hwnd, nullptr, (POINT *)(&rc), 2);
+
+    bool boundCursor = false;
+    if (boundCursor) ClipCursor(&rc);
+}
+
 void Update()
 {
-    float cameraSpeed = 1 / 60.0f;
+    static POINT currentMousePos;
+    POINT lastMousePos = currentMousePos;
+    GetCursorPos(&currentMousePos);
+
+    // RECT rect;
+    // GetWindowRect(d3d11_window.hwnd, &rect);
+    // POINT screenCenter = {rect.left + (rect.right - rect.left) / 2, rect.top + (rect.bottom - rect.top) / 2};
+
+    // if (currentMousePos.x > rect.right || currentMousePos.x < rect.left || currentMousePos.y > rect.bottom || currentMousePos.y < rect.top) {
+    //     SetCursorPos(screenCenter.x, screenCenter.y);
+    // }
+
+    if ((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0)
+    {
+        mouseLookOn = true;
+    }
+    
+
+    RECT rc;
+    POINT topLeft, bottomRight;
+    GetClientRect(d3d11_window.hwnd, &rc);
+    topLeft.x = rc.left;
+    topLeft.y = rc.top;
+    bottomRight.x = rc.right;
+    bottomRight.y = rc.bottom;
+
+    ClientToScreen(d3d11_window.hwnd, &topLeft);
+    ClientToScreen(d3d11_window.hwnd, &bottomRight);
+    // GetWindowRect(d3d11_window.hwnd, &rc);
+
+    // if (mouseLookOn && (currentMousePos.y >= bottomRight.y || currentMousePos.y <= topLeft.y || currentMousePos.x >= bottomRight.x || currentMousePos.x <= topLeft.x))
+    // {
+    //     POINT centre;
+    //     centre.x = rc.right / 2;
+    //     centre.y = rc.bottom / 2;
+    //     ClientToScreen(d3d11_window.hwnd, &centre);
+    //     SetCursorPos(centre.x, centre.y);
+    //     lastMousePos = centre;
+    // }
+
+    static float yaw, pitch;
+    if (mouseLookOn)
+    {
+        // int dx = currentMousePos.x - lastMousePos.x; // calculate mouse movement
+        // int dy = currentMousePos.y - lastMousePos.y;
+
+        float cameraSpeed = 0.025f; // adjust as needed
+        yaw -= (float)dx * -cameraSpeed;
+        pitch -= (float)dy * cameraSpeed;
+        pitch = max(-DirectX::XM_PIDIV2 + 0.0001f, min(DirectX::XM_PIDIV2 - 0.0001f, pitch));
+
+        dx = 0;
+        dy = 0;
+    }
+
+    // update camera direction based on yaw and pitch
+    DirectX::XMVECTOR viewDir = DirectX::XMVectorSet(
+        cosf(yaw) * cosf(pitch),
+        sinf(pitch),
+        sinf(yaw) * cosf(pitch),
+        0.0f);
+    viewDir = DirectX::XMVector4Normalize(viewDir);
+
+    if (mouseLookOn)
+    {
+        at = DirectX::XMVectorAdd(eye, viewDir);
+    }    
+
+    DirectX::XMVECTOR right = DirectX::XMVector3Cross(viewDir, up);
+    viewDir = DirectX::XMVector3Normalize(viewDir);
+    right = DirectX::XMVector3Normalize(right);
+
+    float moveSpeed = 1 / 60.0f;
     DirectX::XMVECTOR dir = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
     if (GetAsyncKeyState('W') & 0x8000)
-        dir = DirectX::XMVectorSet(0.0f, 0.0f, -1.0f * cameraSpeed, 0.0f);
+        dir = DirectX::XMVectorAdd(dir, viewDir);
     if (GetAsyncKeyState('S') & 0x8000)
-        dir = DirectX::XMVectorSet(0.0f, 0.0f, 1.0f * cameraSpeed, 0.0f);
+        dir = DirectX::XMVectorSubtract(dir, viewDir);
     if (GetAsyncKeyState('A') & 0x8000)
-        dir = DirectX::XMVectorSet(-1.0f * cameraSpeed, 0.0f, 0.0f, 0.0f);
+        dir = DirectX::XMVectorSubtract(dir, right);
     if (GetAsyncKeyState('D') & 0x8000)
-        dir = DirectX::XMVectorSet(1.0f * cameraSpeed, 0.0f, 0.0f, 0.0f);    
+        dir = DirectX::XMVectorAdd(dir, right);
+
+    dir = DirectX::XMVectorScale(dir, moveSpeed);
 
     eye = DirectX::XMVectorAdd(eye, dir);
     at = DirectX::XMVectorAdd(at, dir);
@@ -84,6 +170,17 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                 if (!IsWindowVisible(d3d11_window.hwnd))
                     ShowWindow(d3d11_window.hwnd, SW_SHOW);
 
+                RAWINPUTDEVICE mouseRID;
+                mouseRID.usUsagePage = 0x0001;
+                mouseRID.usUsage = 0x0002;
+                mouseRID.dwFlags = 0;
+                mouseRID.hwndTarget = d3d11_window.hwnd;
+                if (RegisterRawInputDevices(&mouseRID, 1, sizeof(mouseRID)) == FALSE) {
+                    //TODO: error no mouse input 
+                }
+
+                Init();
+
                 bool recievedMessage;
                 MSG msg;
                 msg.message = WM_NULL;
@@ -101,6 +198,12 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                         if (d3d11_window.resize)
                         {
                             CreateWindowSizeDependentResources();
+
+                            // RECT rect;
+                            // GetClientRect(d3d11_window.hwnd, &rect); // get dimensions of your window
+                            // ClipCursor(&rect);                       // constrain cursor to your window
+                            // SetCapture(d3d11_window.hwnd);           // capture all mouse input
+
                             d3d11_window.resize = FALSE;
                         }
                         Update();
