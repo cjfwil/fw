@@ -56,7 +56,7 @@ void CreateViewAndPerspective()
                 at,
                 up)));
 
-    float aspectRatioX = d3d11_window.AspectRatio();
+    float aspectRatioX = d3d11_window.CalculateAspectRatio();
     float aspectRatioY = aspectRatioX < (16.0f / 9.0f) ? aspectRatioX /
                                                              (16.0f / 9.0f)
                                                        : 1.0f;

@@ -50,8 +50,9 @@ struct D3D11_Window
     D3D11_VIEWPORT viewport;
 
     BOOL resize;
+    BOOL enabled;
 
-    float AspectRatio()
+    float CalculateAspectRatio()
     {
         return static_cast<float>(width) / static_cast<float>(height);
     }
@@ -125,11 +126,17 @@ LRESULT CALLBACK StaticWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     static BOOL isSizing = FALSE;
     switch (uMsg)
     {
+    case WM_ACTIVATE: {
+        if (wParam & WA_ACTIVE || wParam & WA_CLICKACTIVE ) {
+            d3d11_window.enabled = TRUE;
+        } else {
+            d3d11_window.enabled = FALSE;
+        }
+    } break;
     case WM_INPUT:
     {
         UINT size;
         GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &size, sizeof(RAWINPUTHEADER));
-
         if (size <= sizeof(RAWINPUT))
         {
             static BYTE rawInputBuffer[sizeof(RAWINPUT)];
@@ -137,12 +144,9 @@ LRESULT CALLBACK StaticWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
             {
                 RAWINPUT *ri = (RAWINPUT *)rawInputBuffer;
                 if (ri->header.dwType == RIM_TYPEMOUSE && (ri->data.mouse.lLastX != 0 || ri->data.mouse.lLastY != 0))
-                {
-                    // char buffer[50];
-                    // wsprintfA(buffer, "%d, %d\n", ri->data.mouse.lLastX, ri->data.mouse.lLastY);
-                    // OutputDebugStringA(buffer);
-                    dx = ri->data.mouse.lLastX;
-                    dy = ri->data.mouse.lLastY;
+                {                    
+                    dx += ri->data.mouse.lLastX;
+                    dy += ri->data.mouse.lLastY;
                 }
             }
         }
