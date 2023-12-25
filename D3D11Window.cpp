@@ -50,13 +50,48 @@ struct D3D11_Window
     D3D11_VIEWPORT viewport;
 
     BOOL resize;
-    BOOL enabled;
+    BOOL cursorHidden;
 
     float CalculateAspectRatio()
     {
         return static_cast<float>(width) / static_cast<float>(height);
     }
 } d3d11_window;
+
+void CentreCursor()
+{
+    RECT rc;
+    GetClientRect(d3d11_window.hwnd, &rc);
+    POINT pt;
+    pt.x = (rc.right - rc.left) / 2;
+    pt.y = (rc.bottom - rc.top) / 2;
+    ClientToScreen(d3d11_window.hwnd, &pt);
+    SetCursorPos(pt.x, pt.y);
+}
+
+void BoundCursorMovement()
+{
+    RECT rc;
+    GetClientRect(d3d11_window.hwnd, &rc);
+    MapWindowPoints(d3d11_window.hwnd, nullptr, (POINT *)(&rc), 2);
+    ClipCursor(&rc);
+}
+
+void HideCursor()
+{
+    while (ShowCursor(FALSE) >= 0)
+    {
+    }
+    d3d11_window.cursorHidden = TRUE;
+}
+
+void UnhideCursor()
+{
+    while (ShowCursor(TRUE) < 0)
+    {
+    }
+    d3d11_window.cursorHidden = FALSE;
+}
 
 HRESULT ConfigBackBuffer(UINT width = DEFAULT_WINDOW_WIDTH, UINT height = DEFAULT_WINDOW_HEIGHT)
 {
@@ -126,13 +161,20 @@ LRESULT CALLBACK StaticWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     static BOOL isSizing = FALSE;
     switch (uMsg)
     {
-    case WM_ACTIVATE: {
-        if (wParam & WA_ACTIVE || wParam & WA_CLICKACTIVE ) {
-            d3d11_window.enabled = TRUE;
-        } else {
-            d3d11_window.enabled = FALSE;
+    case WM_ACTIVATE:
+    {
+        if (wParam & WA_ACTIVE || wParam & WA_CLICKACTIVE)
+        {
+            BoundCursorMovement();
+            HideCursor();
         }
-    } break;
+        else
+        {
+            ClipCursor(NULL);
+            UnhideCursor();
+        }
+    }
+    break;
     case WM_INPUT:
     {
         UINT size;
@@ -144,7 +186,7 @@ LRESULT CALLBACK StaticWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
             {
                 RAWINPUT *ri = (RAWINPUT *)rawInputBuffer;
                 if (ri->header.dwType == RIM_TYPEMOUSE && (ri->data.mouse.lLastX != 0 || ri->data.mouse.lLastY != 0))
-                {                    
+                {
                     dx += ri->data.mouse.lLastX;
                     dy += ri->data.mouse.lLastY;
                 }

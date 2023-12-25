@@ -1,46 +1,19 @@
 #include "D3D11Window.cpp"
 #include "D3D11Renderer.cpp"
 
-static bool mouseLookOn = true;
-
-void HideCursor()
-{
-    while (ShowCursor(FALSE) >= 0)
-    {
-    }
-}
-
-void UnhideCursor()
-{
-    while (ShowCursor(TRUE) < 0)
-    {
-    }
-}
-
-void CaptureCursor()
-{
-    RECT rc;
-    GetClientRect(d3d11_window.hwnd, &rc);
-    MapWindowPoints(d3d11_window.hwnd, nullptr, (POINT *)(&rc), 2);
-    ClipCursor(&rc);
-    HideCursor();
-    dx = 0;
-    dy = 0;
-}
+static bool mouseLookOn;
 
 void Init()
 {
+    mouseLookOn = d3d11_window.cursorHidden;
     if (mouseLookOn)
     {
-        RECT rc;
-        GetClientRect(d3d11_window.hwnd, &rc);
-        POINT pt;
-        pt.x = (rc.right - rc.left) / 2;
-        pt.y = (rc.bottom - rc.top) / 2;
-        ClientToScreen(d3d11_window.hwnd, &pt);
-        SetCursorPos(pt.x, pt.y);
+        CentreCursor();
 
-        CaptureCursor();
+        BoundCursorMovement();
+        HideCursor();
+        dx = 0;
+        dy = 0;
     }
 }
 
@@ -54,12 +27,17 @@ void Update()
         mouseLookOn = !mouseLookOn;
         if (mouseLookOn)
         {
-            CaptureCursor();
+            BoundCursorMovement();
+            HideCursor();
+            dx = 0;
+            dy = 0;
         }
         else
         {
             ClipCursor(NULL);
             UnhideCursor();
+            dx = 0;
+            dy = 0;
         }
     }
 
@@ -206,7 +184,7 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                         {
                             CreateWindowSizeDependentResources();
                             d3d11_window.resize = FALSE;
-                        }                        
+                        }
                         Update();
                         Render();
                         d3d11_window.swapChain->Present(1, 0);
