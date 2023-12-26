@@ -22,6 +22,9 @@ struct PS_OUTPUT
     float4 RGBColor : SV_TARGET;
 };
 
+Texture2D tex : register(t0);
+SamplerState smplr : register(s0);
+
 PS_INPUT vs_main(VS_INPUT input) // main is the default function name
 {
     PS_INPUT Output;
@@ -39,6 +42,6 @@ PS_INPUT vs_main(VS_INPUT input) // main is the default function name
 PS_OUTPUT ps_main(PS_INPUT In)
 {
     PS_OUTPUT Output;
-    Output.RGBColor = In.Color;
+    Output.RGBColor = tex.Sample(smplr, In.Color.xy);
     return Output;
 }

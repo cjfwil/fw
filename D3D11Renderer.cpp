@@ -342,6 +342,13 @@ void CreateTexture()
     unsigned int width = 64;
     unsigned int height = 64;
     unsigned int *clrData = (unsigned int *)malloc(width * height * sizeof(unsigned int));
+    for (int x = 0; x < width; ++x)
+    {
+        for (int y = 0; y < height; ++y)
+        {
+            clrData[x+y*width] = ((x^y) % 2 == 0) ? 0xffffffff : 0x00000000;
+        }
+    }
 
     D3D11_TEXTURE2D_DESC texDesc = {};
     texDesc.Width = width;
