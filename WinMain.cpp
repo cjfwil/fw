@@ -1,6 +1,7 @@
 #include "D3D11Window.cpp"
 #include "D3D11Renderer.cpp"
 
+
 static bool mouseLookOn;
 
 void Init()
@@ -96,14 +97,14 @@ void Update()
                 up)));
 
     // Rotate the cube 1 degree per frame.
-    DirectX::XMStoreFloat4x4(
-        &constantBufferData.world,
-        DirectX::XMMatrixTranspose(
-            DirectX::XMMatrixRotationY(
-                DirectX::XMConvertToRadians(
-                    (float)frameCount++))));
-    if (frameCount == MAXUINT)
-        frameCount = 0;
+    // DirectX::XMStoreFloat4x4(
+    //     &constantBufferData.world,
+    //     DirectX::XMMatrixTranspose(
+    //         DirectX::XMMatrixRotationY(
+    //             DirectX::XMConvertToRadians(
+    //                 (float)frameCount++))));
+    // if (frameCount == MAXUINT)
+    //     frameCount = 0;
 
     // Update the state of the escape key
     escapeKeyWasPressed = escapeKeyPressed;
@@ -136,6 +137,8 @@ void Render()
     context->VSSetConstantBuffers(0, 1, &constantBuffer);
     // Set up the pixel shader stage.
     context->PSSetShader(pixelShader, nullptr, 0);
+    context->PSSetShaderResources(0u, 1u, &textureShaderResourceView);
+    context->PSSetSamplers(0, 1, &samplerState);
     // Calling Draw tells Direct3D to start sending commands to the graphics
     context->DrawIndexed(indexCount, 0, 0);
 }
