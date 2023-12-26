@@ -51,8 +51,9 @@ struct D3D11_Window
 
     BOOL resize;
     BOOL cursorHidden;
+    BOOL cursorIsBound;
 
-    float CalculateAspectRatio()
+    inline float CalculateAspectRatio()
     {
         return static_cast<float>(width) / static_cast<float>(height);
     }
@@ -75,6 +76,13 @@ void BoundCursorMovement()
     GetClientRect(d3d11_window.hwnd, &rc);
     MapWindowPoints(d3d11_window.hwnd, nullptr, (POINT *)(&rc), 2);
     ClipCursor(&rc);
+    d3d11_window.cursorIsBound = TRUE;
+}
+
+void UnboundCursorMovement()
+{
+    ClipCursor(NULL);
+    d3d11_window.cursorIsBound = FALSE;
 }
 
 void HideCursor()
@@ -161,16 +169,28 @@ LRESULT CALLBACK StaticWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     static BOOL isSizing = FALSE;
     switch (uMsg)
     {
+    case WM_MOUSEACTIVATE:
     case WM_ACTIVATE:
     {
-        if (wParam & WA_ACTIVE || wParam & WA_CLICKACTIVE)
+        BOOL clientRegionClicked = FALSE;
+        if (uMsg == WM_MOUSEACTIVATE)
+        {
+            POINT mousePoint;
+            GetCursorPos(&mousePoint);
+            ScreenToClient(hWnd, &mousePoint);
+
+            RECT clientRect = {};
+            GetClientRect(hWnd, &clientRect);
+            clientRegionClicked = PtInRect(&clientRect, mousePoint);
+        }
+        if (wParam & WA_ACTIVE || ((wParam & WA_CLICKACTIVE) && clientRegionClicked))
         {
             BoundCursorMovement();
-            HideCursor();
+            HideCursor();            
         }
         else
         {
-            ClipCursor(NULL);
+            UnboundCursorMovement();
             UnhideCursor();
         }
     }

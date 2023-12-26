@@ -22,6 +22,9 @@ void Update()
     bool escapeKeyPressed = (GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0;
     static bool escapeKeyWasPressed = false;
 
+    mouseLookOn = d3d11_window.cursorHidden;
+
+    //TODO move out to keyboard state system
     if (escapeKeyPressed && !escapeKeyWasPressed)
     {
         mouseLookOn = !mouseLookOn;
@@ -34,7 +37,7 @@ void Update()
         }
         else
         {
-            ClipCursor(NULL);
+            UnboundCursorMovement();
             UnhideCursor();
             dx = 0;
             dy = 0;
