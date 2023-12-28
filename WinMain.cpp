@@ -97,14 +97,14 @@ void Update()
                 up)));
 
     // Rotate the cube 1 degree per frame.
-    // DirectX::XMStoreFloat4x4(
-    //     &constantBufferData.world,
-    //     DirectX::XMMatrixTranspose(
-    //         DirectX::XMMatrixRotationY(
-    //             DirectX::XMConvertToRadians(
-    //                 (float)frameCount++))));
-    // if (frameCount == MAXUINT)
-    //     frameCount = 0;
+    DirectX::XMStoreFloat4x4(
+        &constantBufferData.world,
+        DirectX::XMMatrixTranspose(
+            DirectX::XMMatrixRotationY(
+                DirectX::XMConvertToRadians(
+                    (float)frameCount++))));
+    if (frameCount == MAXUINT)
+        frameCount = 0;
 
     // Update the state of the escape key
     escapeKeyWasPressed = escapeKeyPressed;

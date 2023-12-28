@@ -1,2 +1,7 @@
 - Mipmapping for textures
 - skybox
+
+- large terrain
+- octree partitioned objects in world
+
+-combine shader loading

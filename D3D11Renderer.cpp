@@ -42,16 +42,25 @@ typedef struct _vertexPositionColor
 {
     DirectX::XMFLOAT3 pos;
     DirectX::XMFLOAT3 color;
+    float padding[2];
 } VertexPositionColor;
-static_assert((sizeof(VertexPositionColor) % 8) == 0, "VertexPositionColor size must be 8-byte aligned");
+static_assert((sizeof(VertexPositionColor) % 16) == 0, "VertexPositionColor size must be 16-byte aligned");
 
 typedef struct _vertexPositionUV
 {
     DirectX::XMFLOAT3 pos;
     DirectX::XMFLOAT2 uv;
-    float padding;
+    float padding[3];
 } VertexPositionUV;
-static_assert((sizeof(VertexPositionUV) % 8) == 0, "VertexPositionUV size must be 8-byte aligned");
+static_assert((sizeof(VertexPositionUV) % 16) == 0, "VertexPositionUV size must be 16-byte aligned");
+
+typedef struct _vertexPositionUVNormal
+{
+    DirectX::XMFLOAT3 pos;
+    DirectX::XMFLOAT2 uv;
+    DirectX::XMFLOAT3 normal;
+} VertexPositionUVNormal;
+static_assert((sizeof(VertexPositionUVNormal) % 16) == 0, "VertexPositionUV size must be 16-byte aligned");
 
 DirectX::XMVECTOR eye = DirectX::XMVectorSet(0.0f, 0.7f, 1.5f, 0.f);
 DirectX::XMVECTOR at = DirectX::XMVectorSet(0.0f, 0.7f, 0.0f, 0.f);
@@ -167,7 +176,7 @@ HRESULT CreateShadersTex()
     D3D11_INPUT_ELEMENT_DESC iaDesc[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
          0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,
          0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
 
@@ -177,6 +186,57 @@ HRESULT CreateShadersTex()
     bytes = new BYTE[destSize];
     bytesRead = 0;
     fopen_s(&pShader, "CubePixelShaderTex.cso", "rb");
+    bytesRead = fread_s(bytes, destSize, 1, 4096, pShader);
+    hr = device->CreatePixelShader(bytes, bytesRead, nullptr, &pixelShader);
+    delete bytes;
+
+    CD3D11_BUFFER_DESC cbDesc(sizeof(ConstantBufferStruct), D3D11_BIND_CONSTANT_BUFFER);
+    hr = device->CreateBuffer(&cbDesc, nullptr, &constantBuffer);
+
+    fclose(vShader);
+    fclose(pShader);
+    return (hr);
+}
+
+HRESULT CreateShadersNormal()
+{
+    HRESULT hr = S_OK;
+    ID3D11Device *device = d3d11_window.device;
+
+    // TODO: replace std lib
+    FILE *vShader, *pShader;
+    BYTE *bytes;
+    size_t destSize = 4096;
+    size_t bytesRead = 0;
+    bytes = new BYTE[destSize];
+    fopen_s(&vShader, "CubeVertexShaderLighting.cso", "rb");
+    bytesRead = fread_s(bytes, destSize, 1, 4096, vShader);
+    hr = device->CreateVertexShader(
+        bytes,
+        bytesRead,
+        nullptr,
+        &vertexShader);
+
+    if (FAILED(hr))
+    {
+        // TODO:
+    }
+
+    D3D11_INPUT_ELEMENT_DESC iaDesc[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+         0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,
+         0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+         0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+
+    hr = device->CreateInputLayout(iaDesc, ARRAYSIZE(iaDesc), bytes, bytesRead, &inputLayout);
+    delete bytes;
+
+    bytes = new BYTE[destSize];
+    bytesRead = 0;
+    fopen_s(&pShader, "CubePixelShaderLighting.cso", "rb");
     bytesRead = fread_s(bytes, destSize, 1, 4096, pShader);
     hr = device->CreatePixelShader(bytes, bytesRead, nullptr, &pixelShader);
     delete bytes;
@@ -337,6 +397,81 @@ HRESULT CreateTexturedCube()
     return (hr);
 }
 
+HRESULT CreateTexturedNormalsCube()
+{
+    HRESULT hr = S_OK;
+    ID3D11Device *device = d3d11_window.device;
+    VertexPositionUVNormal CubeVertices[] =
+        {
+            // Front Face
+            {DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f)}, // 0
+            {DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f)},   // 1
+            {DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f)},     // 2
+            {DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f)},   // 3
+
+            // Back Face
+            {DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f)}, // 4
+            {DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f)},   // 5
+            {DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f)},     // 6
+            {DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f)},   // 7
+
+            // Top Face
+            {DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f)}, // 8
+            {DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f)},   // 9
+            {DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f)},     // 10
+            {DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f)},   // 11
+
+            // Bottom Face
+            {DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f)}, // 12
+            {DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f)},   // 13
+            {DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f)},     // 14
+            {DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f)},   // 15
+
+            // Left Face
+            {DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f)},   // 16
+            {DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f)},     // 17
+            {DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f)},   // 18
+            {DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f)}, // 19
+
+            // Right Face
+            {DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f)}, // 20
+            {DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f)},   // 21
+            {DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f)},     // 22
+            {DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f)}    // 23
+        };
+
+    CD3D11_BUFFER_DESC vDesc(sizeof(CubeVertices), D3D11_BIND_VERTEX_BUFFER);
+    D3D11_SUBRESOURCE_DATA vData;
+    ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
+    vData.pSysMem = CubeVertices;
+    vData.SysMemPitch = 0;
+    vData.SysMemSlicePitch = 0;
+
+    hr = device->CreateBuffer(&vDesc, &vData, &vertexBuffer);
+
+    // Create index buffer:
+    unsigned short CubeIndices[] =
+        {
+            0, 2, 1, 0, 3, 2,       // Front face
+            4, 6, 5, 4, 7, 6,       // Back face
+            8, 10, 9, 8, 11, 10,    // Top face
+            12, 14, 13, 12, 15, 14, // Bottom face
+            16, 18, 17, 16, 19, 18, // Left face
+            20, 22, 21, 20, 23, 22  // Right face
+        };
+
+    indexCount = ARRAYSIZE(CubeIndices);
+    CD3D11_BUFFER_DESC indexDesc(sizeof(CubeIndices), D3D11_BIND_INDEX_BUFFER);
+    D3D11_SUBRESOURCE_DATA indexData;
+    ZeroMemory(&indexData, sizeof(D3D11_SUBRESOURCE_DATA));
+    indexData.pSysMem = CubeIndices;
+    indexData.SysMemPitch = 0;
+    indexData.SysMemSlicePitch = 0;
+
+    hr = device->CreateBuffer(&indexDesc, &indexData, &indexBuffer);
+    return (hr);
+}
+
 void CreateTexture()
 {
     unsigned int width = 64;
@@ -346,7 +481,7 @@ void CreateTexture()
     {
         for (u_int y = 0; y < height; ++y)
         {
-            clrData[x+y*width] = ((x^y) % 2 == 0) ? 0xffffffff : 0x00000000;
+            clrData[x + y * width] = ((x ^ y) % 2 == 0) ? 0xffffffff : 0x00000000;
         }
     }
 
@@ -410,9 +545,13 @@ void CreateDeviceDependentResources()
     // CreateShaders();
     // CreateCube();
 
-    CreateShadersTex();
-    CreateTexturedCube();
-    CreateTexture();
+    //CreateShadersTex();
+    //CreateTexturedCube();
+
+    CreateShadersNormal();
+    CreateTexturedNormalsCube();
+
+    //CreateTexture();
 }
 
 #endif
