@@ -551,7 +551,7 @@ void CreateDeviceDependentResources()
     CreateShadersNormal();
     CreateTexturedNormalsCube();
 
-    //CreateTexture();
+    CreateTexture();
 }
 
 #endif

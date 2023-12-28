@@ -5,8 +5,6 @@ cbuffer ModelViewProjectionConstantBuffer : register(b0)
     matrix Projection; // projection matrix
 };
 
-
-
 struct VS_INPUT
 {
     float3 vPos : POSITION;
@@ -18,13 +16,16 @@ struct PS_INPUT
 {
     float4 Position : SV_POSITION; // interpolated vertex position (system
     float2 uv : TEXCOORD;
-    float4 Normal : NORMAL;         // interpolated diffuse color
+    float4 Normal : NORMAL;
 };
 
 struct PS_OUTPUT
 {
     float4 RGBColor : SV_TARGET;
 };
+
+Texture2D tex : register(t0);
+SamplerState smplr : register(s0);
 
 PS_INPUT vs_main(VS_INPUT input) // main is the default function name
 {
@@ -44,6 +45,7 @@ PS_INPUT vs_main(VS_INPUT input) // main is the default function name
 PS_OUTPUT ps_main(PS_INPUT In)
 {
     PS_OUTPUT Output;
-    Output.RGBColor = In.Normal;
+    float4 texClr = tex.Sample(smplr, In.uv);    
+    Output.RGBColor = In.Normal*texClr;
     return Output;
 }
