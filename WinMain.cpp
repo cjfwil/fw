@@ -24,7 +24,7 @@ void Update()
     static bool escapeKeyWasPressed = false;
 
     mouseLookOn = d3d11_window.cursorHidden;
-
+    if (mouseLookOn && !d3d11_window.cursorIsBound) BoundCursorMovement();
     //TODO move out to keyboard state system
     if (escapeKeyPressed && !escapeKeyWasPressed)
     {
