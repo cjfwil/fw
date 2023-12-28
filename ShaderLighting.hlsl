@@ -52,7 +52,7 @@ PS_OUTPUT ps_main(PS_INPUT In)
 
     float4 diffuse = tex.Sample(smplr, In.uv);
 
-    // phong calculation
+    // gouraud calculation
     float3 outClr = diffuse.xyz * ambient;
     outClr += saturate(dot(dir, In.Normal.xyz) * diffuseLight * diffuse.xyz);
 
