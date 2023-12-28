@@ -488,26 +488,28 @@ void CreateTexture()
     D3D11_TEXTURE2D_DESC texDesc = {};
     texDesc.Width = width;
     texDesc.Height = height;
-    texDesc.MipLevels = 1;
+    texDesc.MipLevels = 0;
     texDesc.ArraySize = 1;
     texDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
     texDesc.SampleDesc.Count = 1;
     texDesc.SampleDesc.Quality = 0;
     texDesc.Usage = D3D11_USAGE_DEFAULT;
-    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
     texDesc.CPUAccessFlags = 0;
-    texDesc.MiscFlags = 0;
+    texDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
-    D3D11_SUBRESOURCE_DATA sd = {};
-    sd.pSysMem = (void *)clrData;
-    sd.SysMemPitch = width * sizeof(unsigned int);
+    // D3D11_SUBRESOURCE_DATA sd = {};
+    // sd.pSysMem = (void *)clrData;
+    // sd.SysMemPitch = width * sizeof(unsigned int);
 
     ID3D11Texture2D *texture;
-    HRESULT hr = d3d11_window.device->CreateTexture2D(&texDesc, &sd, &texture);
+    HRESULT hr = d3d11_window.device->CreateTexture2D(&texDesc, nullptr, &texture);
     if (FAILED(hr))
     {
         // TODO:
     }
+
+    d3d11_window.context->UpdateSubresource(texture, 0, nullptr, clrData, width*sizeof(unsigned int), 0);
 
     free(clrData);
 
@@ -515,7 +517,7 @@ void CreateTexture()
     srvDesc.Format = texDesc.Format;
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MostDetailedMip = 0;
-    srvDesc.Texture2D.MipLevels = 1;
+    srvDesc.Texture2D.MipLevels = UINT_MAX;
 
     hr = d3d11_window.device->CreateShaderResourceView(texture, &srvDesc, &textureShaderResourceView);
 
@@ -523,6 +525,8 @@ void CreateTexture()
     {
         // TODO:
     }
+
+    d3d11_window.context->GenerateMips(textureShaderResourceView);
 }
 
 void CreateSamplerState()
@@ -532,6 +536,9 @@ void CreateSamplerState()
     sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
     sd.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
     sd.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    sd.MipLODBias = 0.0f;
+    sd.MinLOD = 0.0f;
+    sd.MaxLOD = D3D11_FLOAT32_MAX;
     HRESULT hr = d3d11_window.device->CreateSamplerState(&sd, &samplerState);
     if (FAILED(hr))
     {
