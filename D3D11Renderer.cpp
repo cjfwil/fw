@@ -539,6 +539,13 @@ void CreateSamplerState()
     sd.MipLODBias = 0.0f;
     sd.MinLOD = 0.0f;
     sd.MaxLOD = D3D11_FLOAT32_MAX;
+
+    BOOL af16 = FALSE; //anisotropic filtering 16x
+    if (af16) {
+        sd.Filter = D3D11_FILTER_ANISOTROPIC;
+        sd.MaxAnisotropy = D3D11_REQ_MAXANISOTROPY; // equals 16
+    }
+
     HRESULT hr = d3d11_window.device->CreateSamplerState(&sd, &samplerState);
     if (FAILED(hr))
     {
