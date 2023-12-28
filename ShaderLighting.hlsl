@@ -45,7 +45,17 @@ PS_INPUT vs_main(VS_INPUT input) // main is the default function name
 PS_OUTPUT ps_main(PS_INPUT In)
 {
     PS_OUTPUT Output;
-    float4 texClr = tex.Sample(smplr, In.uv);    
-    Output.RGBColor = In.Normal*texClr;
+
+    float3 dir = float3(0.25f, 0.5f, -1.0f);
+    float3 ambient = float3(0.2f, 0.2f, 0.2f);
+    float3 diffuseLight = float3(1.0f, 1.0f, 1.0f);
+
+    float4 diffuse = tex.Sample(smplr, In.uv);
+
+    // phong calculation
+    float3 outClr = diffuse.xyz * ambient;
+    outClr += saturate(dot(dir, In.Normal.xyz) * diffuseLight * diffuse.xyz);
+
+    Output.RGBColor = float4(outClr, 1.0f);
     return Output;
 }
