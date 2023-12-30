@@ -31,7 +31,11 @@ void StartImgui()
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
-    ImGui::ShowDemoWindow(); // Show demo window! :)
+    //ImGui::ShowDemoWindow(); // Show demo window! :)
+
+    ImGui::Begin("Info");
+    ImGui::Text("%.3f ms", 1000.0f/ImGui::GetIO().Framerate);
+    ImGui::End();
 }
 
 void EndImgui()

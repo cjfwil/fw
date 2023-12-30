@@ -6,4 +6,6 @@ x Mipmapping for textures
 
 - combine shader loading
 
-- imgui
+x imgui
+
+- ini file keeps window dimensions and position
