@@ -4,5 +4,6 @@
 *.pdb
 *.obj
 *.cso
+*.lib
 
 imgui.ini

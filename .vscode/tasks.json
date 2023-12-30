@@ -6,12 +6,15 @@
             "command": "cl.exe",
             "args": [
                 "/Zi",
-                //"-Wall",
+                "-Wall",
                 "/EHsc",
                 "/nologo",                
-                "${fileDirname}\\imgui\\*.cpp",
+                //"${fileDirname}\\imgui\\*.cpp", //compile imgui source
                 "/Fe${fileDirname}\\${fileBasenameNoExtension}.exe",
-                "${file}"
+                "${file}",
+                "/link",
+                "/LIBPATH:build/",
+                "imgui.lib"
             ],
             "options": {
                 "cwd": "${fileDirname}"
