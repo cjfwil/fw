@@ -1,7 +1,6 @@
 #include "D3D11Window.cpp"
 #include "D3D11Renderer.cpp"
 
-
 static bool mouseLookOn;
 
 void Init()
@@ -24,8 +23,9 @@ void Update()
     static bool escapeKeyWasPressed = false;
 
     mouseLookOn = d3d11_window.cursorHidden;
-    if (mouseLookOn && !d3d11_window.cursorIsBound) BoundCursorMovement();
-    //TODO move out to keyboard state system
+    if (mouseLookOn && !d3d11_window.cursorIsBound)
+        BoundCursorMovement();
+    // TODO move out to keyboard state system
     if (escapeKeyPressed && !escapeKeyWasPressed)
     {
         mouseLookOn = !mouseLookOn;
@@ -129,8 +129,7 @@ void Render()
     context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-    context->IASetPrimitiveTopology(
-        D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     context->IASetInputLayout(inputLayout);
     // Set up the vertex shader stage.
     context->VSSetShader(vertexShader, nullptr, 0);

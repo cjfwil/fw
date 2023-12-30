@@ -540,7 +540,7 @@ void CreateSamplerState()
     sd.MinLOD = 0.0f;
     sd.MaxLOD = D3D11_FLOAT32_MAX;
 
-    BOOL af16 = FALSE; //anisotropic filtering 16x
+    BOOL af16 = TRUE; //anisotropic filtering 16x
     if (af16) {
         sd.Filter = D3D11_FILTER_ANISOTROPIC;
         sd.MaxAnisotropy = D3D11_REQ_MAXANISOTROPY; // equals 16
