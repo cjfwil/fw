@@ -19,8 +19,8 @@
 #include <d3dcompiler.h>
 #pragma warning(pop)
 
-#define DEFAULT_WINDOW_WIDTH 640
-#define DEFAULT_WINDOW_HEIGHT 480
+#define DEFAULT_WINDOW_WIDTH 1024
+#define DEFAULT_WINDOW_HEIGHT 768
 
 int dx = 0;
 int dy = 0;
@@ -166,6 +166,10 @@ HRESULT ConfigBackBuffer(UINT width = DEFAULT_WINDOW_WIDTH, UINT height = DEFAUL
 
 LRESULT CALLBACK StaticWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
+        return true;
+    
     static BOOL isSizing = FALSE;
     switch (uMsg)
     {
@@ -186,7 +190,7 @@ LRESULT CALLBACK StaticWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (wParam & WA_ACTIVE || ((wParam & WA_CLICKACTIVE) && clientRegionClicked))
         {
             BoundCursorMovement();
-            HideCursor();            
+            HideCursor();
         }
         else
         {

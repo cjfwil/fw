@@ -1,7 +1,54 @@
+#pragma warning(push, 0)
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_win32.h"
+#include "imgui/imgui_impl_dx11.h"
+#pragma warning(pop)
+
 #include "D3D11Window.cpp"
 #include "D3D11Renderer.cpp"
 
 static bool mouseLookOn;
+
+void InitImgui()
+{
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+    // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // IF using Docking Branch
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplWin32_Init(d3d11_window.hwnd);
+    ImGui_ImplDX11_Init(d3d11_window.device, d3d11_window.context);
+}
+
+void StartImgui()
+{
+    // (Your code process and dispatch Win32 messages)
+    // Start the Dear ImGui frame
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+    ImGui::ShowDemoWindow(); // Show demo window! :)
+}
+
+void EndImgui()
+{
+    // Rendering
+    // (Your code clears your framebuffer, renders your other stuff etc.)
+    ImGui::Render();
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    // (Your code calls swapchain's Present() function)
+}
+
+void CleanupImgui()
+{
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
+}
 
 void Init()
 {
@@ -15,12 +62,14 @@ void Init()
         dx = 0;
         dy = 0;
     }
+
+    InitImgui();
 }
 
 void Update()
 {
     bool escapeKeyPressed = (GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0;
-    static bool escapeKeyWasPressed = false;
+    static bool escapeKeyWasPressed = false;    
 
     mouseLookOn = d3d11_window.cursorHidden;
     if (mouseLookOn && !d3d11_window.cursorIsBound)
@@ -191,12 +240,16 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                             d3d11_window.resize = FALSE;
                         }
                         Update();
+
+                        StartImgui();
                         Render();
+                        EndImgui();
                         d3d11_window.swapChain->Present(1, 0);
                     }
                 }
             }
         }
     }
+    CleanupImgui();
     return (0);
 }

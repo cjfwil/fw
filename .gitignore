@@ -1,6 +1,8 @@
-*.json
+#*.json
 *.exe
 *.ilk
 *.pdb
 *.obj
 *.cso
+
+imgui.ini
