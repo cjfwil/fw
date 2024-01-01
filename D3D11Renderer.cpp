@@ -100,7 +100,7 @@ void CreateWindowSizeDependentResources()
     CreateViewAndPerspective();
 }
 
-HRESULT CreateShaderPair(char* vertexShaderPath, char* pixelShaderPath, D3D11_INPUT_ELEMENT_DESC* iaDesc, UINT iaDescSize)
+HRESULT CreateShaderPair(char *vertexShaderPath, char *pixelShaderPath, D3D11_INPUT_ELEMENT_DESC *iaDesc, UINT iaDescSize)
 {
     HRESULT hr = S_OK;
     ID3D11Device *device = d3d11_window.device;
@@ -122,7 +122,7 @@ HRESULT CreateShaderPair(char* vertexShaderPath, char* pixelShaderPath, D3D11_IN
     if (FAILED(hr))
     {
         // TODO:
-    }    
+    }
 
     hr = device->CreateInputLayout(iaDesc, iaDescSize, bytes, bytesRead, &inputLayout);
     delete bytes;
@@ -141,7 +141,6 @@ HRESULT CreateShaderPair(char* vertexShaderPath, char* pixelShaderPath, D3D11_IN
     fclose(pShader);
     return (hr);
 }
-
 
 HRESULT CreateCube()
 {
@@ -298,40 +297,40 @@ HRESULT CreateTexturedNormalsCube()
     VertexPositionUVNormal CubeVertices[] =
         {
             // Front Face
-            {DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f)}, // 0
-            {DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f)},   // 1
-            {DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f)},     // 2
-            {DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f)},   // 3
+            {DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f)}, // 0
+            {DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f)},  // 1
+            {DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f)},   // 2
+            {DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f)},  // 3
 
             // Back Face
-            {DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f)}, // 4
-            {DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f)},   // 5
-            {DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f)},     // 6
-            {DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f)},   // 7
+            {DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f)}, // 4
+            {DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f)},  // 5
+            {DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f)},   // 6
+            {DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f)},  // 7
 
             // Top Face
-            {DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f)}, // 8
-            {DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f)},   // 9
-            {DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f)},     // 10
-            {DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f)},   // 11
+            {DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f)}, // 8
+            {DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f)},  // 9
+            {DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f)},   // 10
+            {DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f)},  // 11
 
             // Bottom Face
-            {DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f)}, // 12
-            {DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f)},   // 13
-            {DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f)},     // 14
-            {DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f)},   // 15
-
-            // Left Face
-            {DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f)},   // 16
-            {DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f)},     // 17
-            {DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f)},   // 18
-            {DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f)}, // 19
+            {DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f)}, // 12
+            {DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f)},  // 13
+            {DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f)},   // 14
+            {DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f)},  // 15
 
             // Right Face
-            {DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f)}, // 20
-            {DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f)},   // 21
-            {DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f)},     // 22
-            {DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f)}    // 23
+            {DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)}, // 16
+            {DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)},  // 17
+            {DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)},   // 18
+            {DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)},  // 19
+
+            // Left Face
+            {DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f)}, // 20
+            {DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f)},  // 21
+            {DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f)},   // 22
+            {DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f)}   // 23
         };
 
     CD3D11_BUFFER_DESC vDesc(sizeof(CubeVertices), D3D11_BIND_VERTEX_BUFFER);
@@ -405,7 +404,7 @@ void CreateTexture()
         // TODO:
     }
 
-    d3d11_window.context->UpdateSubresource(texture, 0, nullptr, clrData, width*sizeof(unsigned int), 0);
+    d3d11_window.context->UpdateSubresource(texture, 0, nullptr, clrData, width * sizeof(unsigned int), 0);
 
     free(clrData);
 
@@ -436,8 +435,9 @@ void CreateSamplerState()
     sd.MinLOD = 0.0f;
     sd.MaxLOD = D3D11_FLOAT32_MAX;
 
-    BOOL af16 = TRUE; //anisotropic filtering 16x
-    if (af16) {
+    BOOL af16 = TRUE; // anisotropic filtering 16x
+    if (af16)
+    {
         sd.Filter = D3D11_FILTER_ANISOTROPIC;
         sd.MaxAnisotropy = D3D11_REQ_MAXANISOTROPY; // equals 16
     }
@@ -452,7 +452,6 @@ void CreateSamplerState()
 void CreateDeviceDependentResources()
 {
     // todo run creation of meshes and shaders asynchronously
-
 
     D3D11_INPUT_ELEMENT_DESC iaDesc[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
@@ -469,10 +468,9 @@ void CreateDeviceDependentResources()
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,
          0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
-    
-    //CreateShaderPair("CubeVertexShaderTex.cso", "CubePixelShaderTex.cso", iaDescUV, ARRAYSIZE(iaDescUV));    
-    //CreateTexturedCube();
 
+    // CreateShaderPair("CubeVertexShaderTex.cso", "CubePixelShaderTex.cso", iaDescUV, ARRAYSIZE(iaDescUV));
+    // CreateTexturedCube();
 
     D3D11_INPUT_ELEMENT_DESC iaDescNormals[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
