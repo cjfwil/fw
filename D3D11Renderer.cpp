@@ -60,7 +60,7 @@ typedef struct _vertexPositionUVNormal
     DirectX::XMFLOAT2 uv;
     DirectX::XMFLOAT3 normal;
 } VertexPositionUVNormal;
-static_assert((sizeof(VertexPositionUVNormal) % 16) == 0, "VertexPositionUV size must be 16-byte aligned");
+static_assert((sizeof(VertexPositionUVNormal) % 16) == 0, "VertexPositionUVNormal size must be 16-byte aligned");
 
 DirectX::XMVECTOR eye = DirectX::XMVectorSet(0.0f, 0.7f, 1.5f, 0.f);
 DirectX::XMVECTOR at = DirectX::XMVectorSet(0.0f, 0.7f, 0.0f, 0.f);
@@ -100,7 +100,7 @@ void CreateWindowSizeDependentResources()
     CreateViewAndPerspective();
 }
 
-HRESULT CreateShaders()
+HRESULT CreateShaderPair(char* vertexShaderPath, char* pixelShaderPath, D3D11_INPUT_ELEMENT_DESC* iaDesc, UINT iaDescSize)
 {
     HRESULT hr = S_OK;
     ID3D11Device *device = d3d11_window.device;
@@ -111,7 +111,7 @@ HRESULT CreateShaders()
     size_t destSize = 4096;
     size_t bytesRead = 0;
     bytes = new BYTE[destSize];
-    fopen_s(&vShader, "CubeVertexShader.cso", "rb");
+    fopen_s(&vShader, vertexShaderPath, "rb");
     bytesRead = fread_s(bytes, destSize, 1, 4096, vShader);
     hr = device->CreateVertexShader(
         bytes,
@@ -122,21 +122,14 @@ HRESULT CreateShaders()
     if (FAILED(hr))
     {
         // TODO:
-    }
+    }    
 
-    D3D11_INPUT_ELEMENT_DESC iaDesc[] = {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
-         0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT,
-         0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    };
-
-    hr = device->CreateInputLayout(iaDesc, ARRAYSIZE(iaDesc), bytes, bytesRead, &inputLayout);
+    hr = device->CreateInputLayout(iaDesc, iaDescSize, bytes, bytesRead, &inputLayout);
     delete bytes;
 
     bytes = new BYTE[destSize];
     bytesRead = 0;
-    fopen_s(&pShader, "CubePixelShader.cso", "rb");
+    fopen_s(&pShader, pixelShaderPath, "rb");
     bytesRead = fread_s(bytes, destSize, 1, 4096, pShader);
     hr = device->CreatePixelShader(bytes, bytesRead, nullptr, &pixelShader);
     delete bytes;
@@ -149,105 +142,6 @@ HRESULT CreateShaders()
     return (hr);
 }
 
-HRESULT CreateShadersTex()
-{
-    HRESULT hr = S_OK;
-    ID3D11Device *device = d3d11_window.device;
-
-    // TODO: replace std lib
-    FILE *vShader, *pShader;
-    BYTE *bytes;
-    size_t destSize = 4096;
-    size_t bytesRead = 0;
-    bytes = new BYTE[destSize];
-    fopen_s(&vShader, "CubeVertexShaderTex.cso", "rb");
-    bytesRead = fread_s(bytes, destSize, 1, 4096, vShader);
-    hr = device->CreateVertexShader(
-        bytes,
-        bytesRead,
-        nullptr,
-        &vertexShader);
-
-    if (FAILED(hr))
-    {
-        // TODO:
-    }
-
-    D3D11_INPUT_ELEMENT_DESC iaDesc[] = {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
-         0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,
-         0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    };
-
-    hr = device->CreateInputLayout(iaDesc, ARRAYSIZE(iaDesc), bytes, bytesRead, &inputLayout);
-    delete bytes;
-
-    bytes = new BYTE[destSize];
-    bytesRead = 0;
-    fopen_s(&pShader, "CubePixelShaderTex.cso", "rb");
-    bytesRead = fread_s(bytes, destSize, 1, 4096, pShader);
-    hr = device->CreatePixelShader(bytes, bytesRead, nullptr, &pixelShader);
-    delete bytes;
-
-    CD3D11_BUFFER_DESC cbDesc(sizeof(ConstantBufferStruct), D3D11_BIND_CONSTANT_BUFFER);
-    hr = device->CreateBuffer(&cbDesc, nullptr, &constantBuffer);
-
-    fclose(vShader);
-    fclose(pShader);
-    return (hr);
-}
-
-HRESULT CreateShadersNormal()
-{
-    HRESULT hr = S_OK;
-    ID3D11Device *device = d3d11_window.device;
-
-    // TODO: replace std lib
-    FILE *vShader, *pShader;
-    BYTE *bytes;
-    size_t destSize = 4096;
-    size_t bytesRead = 0;
-    bytes = new BYTE[destSize];
-    fopen_s(&vShader, "CubeVertexShaderLighting.cso", "rb");
-    bytesRead = fread_s(bytes, destSize, 1, 4096, vShader);
-    hr = device->CreateVertexShader(
-        bytes,
-        bytesRead,
-        nullptr,
-        &vertexShader);
-
-    if (FAILED(hr))
-    {
-        // TODO:
-    }
-
-    D3D11_INPUT_ELEMENT_DESC iaDesc[] = {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
-         0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,
-         0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,
-         0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    };
-
-    hr = device->CreateInputLayout(iaDesc, ARRAYSIZE(iaDesc), bytes, bytesRead, &inputLayout);
-    delete bytes;
-
-    bytes = new BYTE[destSize];
-    bytesRead = 0;
-    fopen_s(&pShader, "CubePixelShaderLighting.cso", "rb");
-    bytesRead = fread_s(bytes, destSize, 1, 4096, pShader);
-    hr = device->CreatePixelShader(bytes, bytesRead, nullptr, &pixelShader);
-    delete bytes;
-
-    CD3D11_BUFFER_DESC cbDesc(sizeof(ConstantBufferStruct), D3D11_BIND_CONSTANT_BUFFER);
-    hr = device->CreateBuffer(&cbDesc, nullptr, &constantBuffer);
-
-    fclose(vShader);
-    fclose(pShader);
-    return (hr);
-}
 
 HRESULT CreateCube()
 {
@@ -498,6 +392,8 @@ void CreateTexture()
     texDesc.CPUAccessFlags = 0;
     texDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
+    // ---- this is commented out because it cant be used with generating mipmaps -----
+    // ---- if we dont need mips we can use this ----
     // D3D11_SUBRESOURCE_DATA sd = {};
     // sd.pSysMem = (void *)clrData;
     // sd.SysMemPitch = width * sizeof(unsigned int);
@@ -556,13 +452,37 @@ void CreateSamplerState()
 void CreateDeviceDependentResources()
 {
     // todo run creation of meshes and shaders asynchronously
-    // CreateShaders();
+
+
+    D3D11_INPUT_ELEMENT_DESC iaDesc[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+         0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+         0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+    // CreateShaderPair("CubeVertexShader.cso", "CubePixelShader.cso", iaDesc, ARRAYSIZE(iaDesc));
     // CreateCube();
 
-    //CreateShadersTex();
+    D3D11_INPUT_ELEMENT_DESC iaDescUV[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+         0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,
+         0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+    
+    //CreateShaderPair("CubeVertexShaderTex.cso", "CubePixelShaderTex.cso", iaDescUV, ARRAYSIZE(iaDescUV));    
     //CreateTexturedCube();
 
-    CreateShadersNormal();
+
+    D3D11_INPUT_ELEMENT_DESC iaDescNormals[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+         0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,
+         0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+         0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+    CreateShaderPair("CubeVertexShaderLighting.cso", "CubePixelShaderLighting.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
     CreateTexturedNormalsCube();
 
     CreateTexture();

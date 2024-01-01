@@ -30,7 +30,7 @@ struct D3D11_Window
     HINSTANCE hInstance;
     char *windowClassName = "D3D11WindowClass";
     HWND hwnd;
-    RECT rc; // TODO: Remove?
+    RECT rc;
     HMENU hMenu;
 
     D3D_FEATURE_LEVEL featureLevel;
@@ -231,7 +231,7 @@ LRESULT CALLBACK StaticWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
             UINT Width = (UINT)(rc.right - rc.left);
             UINT Height = (UINT)(rc.bottom - rc.top);
             ConfigBackBuffer(Width, Height);
-            d3d11_window.resize = TRUE;
+            d3d11_window.resize = TRUE; //call on resize function in struct?
         }
     }
     break;
