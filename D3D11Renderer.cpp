@@ -33,12 +33,18 @@ typedef struct _ModelViewProjectionConstantBuffer
 static_assert((sizeof(ModelViewProjectionConstantBuffer) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
 
 ModelViewProjectionConstantBuffer constantBufferData;
-unsigned int indexCount;
 unsigned int frameCount;
 
 ID3D11Buffer *constantBuffer;
-ID3D11Buffer *vertexBuffer;
-ID3D11Buffer *indexBuffer;
+
+struct vertex_index_buffer_pair
+{
+    ID3D11Buffer *vertexBuffer;
+    ID3D11Buffer *indexBuffer;
+    unsigned int indexCount;
+};
+
+win32_expandable_list<vertex_index_buffer_pair> mainModel;
 
 typedef struct _vertexPositionColor
 {
@@ -94,7 +100,7 @@ void CreateViewAndPerspective()
                              aspectRatioY),
                 aspectRatioX,
                 0.01f,
-                100.0f)));
+                1000.0f)));
 }
 
 void CreateWindowSizeDependentResources()
@@ -144,159 +150,11 @@ HRESULT CreateShaderPair(char *vertexShaderPath, char *pixelShaderPath, D3D11_IN
     return (hr);
 }
 
-HRESULT CreateCube()
-{
-    HRESULT hr = S_OK;
-    ID3D11Device *device = d3d11_window.device;
-    VertexPositionColor CubeVertices[] =
-        {
-            {
-                DirectX::XMFLOAT3(-0.5f, -0.5f, -0.5f),
-                DirectX::XMFLOAT3(0, 0, 0),
-            },
-            {
-                DirectX::XMFLOAT3(-0.5f, -0.5f, 0.5f),
-                DirectX::XMFLOAT3(0, 0, 1),
-            },
-            {
-                DirectX::XMFLOAT3(-0.5f, 0.5f, -0.5f),
-                DirectX::XMFLOAT3(0, 1, 0),
-            },
-            {
-                DirectX::XMFLOAT3(-0.5f, 0.5f, 0.5f),
-                DirectX::XMFLOAT3(0, 1, 1),
-            },
-            {
-                DirectX::XMFLOAT3(0.5f, -0.5f, -0.5f),
-                DirectX::XMFLOAT3(1, 0, 0),
-            },
-            {
-                DirectX::XMFLOAT3(0.5f, -0.5f, 0.5f),
-                DirectX::XMFLOAT3(1, 0, 1),
-            },
-            {
-                DirectX::XMFLOAT3(0.5f, 0.5f, -0.5f),
-                DirectX::XMFLOAT3(1, 1, 0),
-            },
-            {
-                DirectX::XMFLOAT3(0.5f, 0.5f, 0.5f),
-                DirectX::XMFLOAT3(1, 1, 1),
-            },
-        };
-
-    CD3D11_BUFFER_DESC vDesc(sizeof(CubeVertices), D3D11_BIND_VERTEX_BUFFER);
-    D3D11_SUBRESOURCE_DATA vData;
-    ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
-    vData.pSysMem = CubeVertices;
-    vData.SysMemPitch = 0;
-    vData.SysMemSlicePitch = 0;
-
-    hr = device->CreateBuffer(&vDesc, &vData, &vertexBuffer);
-
-    // Create index buffer:
-    unsigned short CubeIndices[] =
-        {
-            0,
-            2,
-            1, // -x
-            1,
-            2,
-            3,
-            4,
-            5,
-            6, // +x
-            5,
-            7,
-            6,
-            0,
-            1,
-            5, // -y
-            0,
-            5,
-            4,
-            2,
-            6,
-            7, // +y
-            2,
-            7,
-            3,
-            0,
-            4,
-            6, // -z
-            0,
-            6,
-            2,
-            1,
-            3,
-            7, // +z
-            1,
-            7,
-            5,
-        };
-    indexCount = ARRAYSIZE(CubeIndices);
-    CD3D11_BUFFER_DESC indexDesc(sizeof(CubeIndices), D3D11_BIND_INDEX_BUFFER);
-    D3D11_SUBRESOURCE_DATA indexData;
-    ZeroMemory(&indexData, sizeof(D3D11_SUBRESOURCE_DATA));
-    indexData.pSysMem = CubeIndices;
-    indexData.SysMemPitch = 0;
-    indexData.SysMemSlicePitch = 0;
-
-    hr = device->CreateBuffer(&indexDesc, &indexData, &indexBuffer);
-    return (hr);
-}
-
-HRESULT CreateTexturedCube()
-{
-    HRESULT hr = S_OK;
-    ID3D11Device *device = d3d11_window.device;
-    VertexPositionUV CubeVertices[] =
-        {
-            {DirectX::XMFLOAT3(-0.5f, -0.5f, -0.5f), DirectX::XMFLOAT2(0.0f, 1.0f)}, // 0
-            {DirectX::XMFLOAT3(-0.5f, 0.5f, -0.5f), DirectX::XMFLOAT2(0.0f, 0.0f)},  // 1
-            {DirectX::XMFLOAT3(0.5f, 0.5f, -0.5f), DirectX::XMFLOAT2(1.0f, 0.0f)},   // 2
-            {DirectX::XMFLOAT3(0.5f, -0.5f, -0.5f), DirectX::XMFLOAT2(1.0f, 1.0f)},  // 3
-            {DirectX::XMFLOAT3(-0.5f, -0.5f, 0.5f), DirectX::XMFLOAT2(0.0f, 1.0f)},  // 4
-            {DirectX::XMFLOAT3(-0.5f, 0.5f, 0.5f), DirectX::XMFLOAT2(0.0f, 0.0f)},   // 5
-            {DirectX::XMFLOAT3(0.5f, 0.5f, 0.5f), DirectX::XMFLOAT2(1.0f, 0.0f)},    // 6
-            {DirectX::XMFLOAT3(0.5f, -0.5f, 0.5f), DirectX::XMFLOAT2(1.0f, 1.0f)}    // 7
-        };
-
-    CD3D11_BUFFER_DESC vDesc(sizeof(CubeVertices), D3D11_BIND_VERTEX_BUFFER);
-    D3D11_SUBRESOURCE_DATA vData;
-    ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
-    vData.pSysMem = CubeVertices;
-    vData.SysMemPitch = 0;
-    vData.SysMemSlicePitch = 0;
-
-    hr = device->CreateBuffer(&vDesc, &vData, &vertexBuffer);
-
-    // Create index buffer:
-    unsigned short CubeIndices[] =
-        {
-            0, 2, 1, 0, 3, 2, // Front face
-            4, 5, 6, 4, 6, 7, // Back face
-            4, 1, 5, 4, 0, 1, // Left face
-            3, 6, 2, 3, 7, 6, // Right face
-            1, 6, 5, 1, 2, 6, // Top face
-            4, 3, 0, 4, 7, 3  // Bottom face
-        };
-    indexCount = ARRAYSIZE(CubeIndices);
-    CD3D11_BUFFER_DESC indexDesc(sizeof(CubeIndices), D3D11_BIND_INDEX_BUFFER);
-    D3D11_SUBRESOURCE_DATA indexData;
-    ZeroMemory(&indexData, sizeof(D3D11_SUBRESOURCE_DATA));
-    indexData.pSysMem = CubeIndices;
-    indexData.SysMemPitch = 0;
-    indexData.SysMemSlicePitch = 0;
-
-    hr = device->CreateBuffer(&indexDesc, &indexData, &indexBuffer);
-    return (hr);
-}
-
-HRESULT CreateVertexIndexBufferPair(VertexPositionUVNormal *vertices,
-                                    unsigned int verticesSize,
-                                    unsigned short *indices,
-                                    unsigned int indicesSize,
-                                    UINT _indexCount)
+vertex_index_buffer_pair CreateVertexIndexBufferPair(VertexPositionUVNormal *vertices,
+                                                     unsigned int verticesSize,
+                                                     unsigned short *indices,
+                                                     unsigned int indicesSize,
+                                                     UINT indexCount)
 {
     HRESULT hr = S_OK;
     ID3D11Device *device = d3d11_window.device;
@@ -309,10 +167,12 @@ HRESULT CreateVertexIndexBufferPair(VertexPositionUVNormal *vertices,
     vData.SysMemPitch = 0;
     vData.SysMemSlicePitch = 0;
 
-    hr = device->CreateBuffer(&vDesc, &vData, &vertexBuffer);
+    vertex_index_buffer_pair result = {};
+
+    hr = device->CreateBuffer(&vDesc, &vData, &result.vertexBuffer);
 
     // Create index buffer:
-    indexCount = _indexCount;
+    result.indexCount = indexCount;
     CD3D11_BUFFER_DESC indexDesc(indicesSize, D3D11_BIND_INDEX_BUFFER);
     D3D11_SUBRESOURCE_DATA indexData;
     ZeroMemory(&indexData, sizeof(D3D11_SUBRESOURCE_DATA));
@@ -320,8 +180,10 @@ HRESULT CreateVertexIndexBufferPair(VertexPositionUVNormal *vertices,
     indexData.SysMemPitch = 0;
     indexData.SysMemSlicePitch = 0;
 
-    hr = device->CreateBuffer(&indexDesc, &indexData, &indexBuffer);
-    return (hr);
+    hr = device->CreateBuffer(&indexDesc, &indexData, &result.indexBuffer);
+    // TODO: hresult error checking
+
+    return (result);
 }
 
 void CreateTexture()
@@ -440,57 +302,104 @@ void CreateDeviceDependentResources()
          0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
     CreateShaderPair("CubeVertexShaderLighting.cso", "CubePixelShaderLighting.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
-    // CreateTexturedNormalsCube();
 
-    VertexPositionUVNormal CubeVertices[] =
+    // init assimp
+    Assimp::Importer imp;
+    auto model = imp.ReadFile("spider.obj", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
+
+    mainModel.Init();
+    for (int i = 0; i < model->mNumMeshes; ++i)
+    {
+        auto mesh = model->mMeshes[i];
+
+        win32_expandable_list<VertexPositionUVNormal> vertices;
+        vertices.Init();
+
+        for (unsigned int i = 0; i < mesh->mNumVertices; i++)
         {
-            // Front Face
-            {DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f)}, // 0
-            {DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f)},  // 1
-            {DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f)},   // 2
-            {DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f)},  // 3
+            VertexPositionUVNormal v = {};
+            v.pos.x = mesh->mVertices[i].x;
+            v.pos.y = mesh->mVertices[i].y;
+            v.pos.z = mesh->mVertices[i].z;
 
-            // Back Face
-            {DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f)}, // 4
-            {DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f)},  // 5
-            {DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f)},   // 6
-            {DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f)},  // 7
+            // v.uv.x = mesh->mTextureCoords[i].x;
+            // v.uv.y = mesh->mTextureCoords[i].y;
 
-            // Top Face
-            {DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f)}, // 8
-            {DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f)},  // 9
-            {DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f)},   // 10
-            {DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f)},  // 11
+            v.normal.x = mesh->mNormals[i].x;
+            v.normal.y = mesh->mNormals[i].y;
+            v.normal.z = mesh->mNormals[i].z;
 
-            // Bottom Face
-            {DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f)}, // 12
-            {DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f)},  // 13
-            {DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f)},   // 14
-            {DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f)},  // 15
+            vertices.Add(v);
+        }
 
-            // Right Face
-            {DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)}, // 16
-            {DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)},  // 17
-            {DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)},   // 18
-            {DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)},  // 19
-
-            // Left Face
-            {DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f)}, // 20
-            {DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f)},  // 21
-            {DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f)},   // 22
-            {DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f)}   // 23
-        };
-
-    unsigned short CubeIndices[] =
+        win32_expandable_list<unsigned short> indices;
+        indices.Init();
+        for (unsigned int i = 0; i < mesh->mNumFaces; i++)
         {
-            0, 2, 1, 0, 3, 2,       // Front face
-            4, 6, 5, 4, 7, 6,       // Back face
-            8, 10, 9, 8, 11, 10,    // Top face
-            12, 14, 13, 12, 15, 14, // Bottom face
-            16, 18, 17, 16, 19, 18, // Left face
-            20, 22, 21, 20, 23, 22  // Right face
-        };
-    CreateVertexIndexBufferPair(CubeVertices, sizeof(CubeVertices), CubeIndices, sizeof(CubeIndices), ARRAYSIZE(CubeIndices));
+            const auto &f = mesh->mFaces[i];
+            assert(f.mNumIndices == 3);
+            indices.Add(f.mIndices[0]);
+            indices.Add(f.mIndices[2]);
+            indices.Add(f.mIndices[1]);
+        }
+        vertex_index_buffer_pair vi = CreateVertexIndexBufferPair(vertices.data,
+                                    vertices.numElements * sizeof(VertexPositionUVNormal),
+                                    indices.data,
+                                    indices.numElements * sizeof(unsigned short),
+                                    indices.numElements);
+        
+        mainModel.Add(vi);
+    }
+
+    // VertexPositionUVNormal CubeVertices[] =
+    //     {
+    //         // Front Face
+    //         {DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f)}, // 0
+    //         {DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f)},  // 1
+    //         {DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f)},   // 2
+    //         {DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f)},  // 3
+
+    //         // Back Face
+    //         {DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f)}, // 4
+    //         {DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f)},  // 5
+    //         {DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f)},   // 6
+    //         {DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f)},  // 7
+
+    //         // Top Face
+    //         {DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f)}, // 8
+    //         {DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f)},  // 9
+    //         {DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f)},   // 10
+    //         {DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f)},  // 11
+
+    //         // Bottom Face
+    //         {DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f)}, // 12
+    //         {DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f)},  // 13
+    //         {DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f)},   // 14
+    //         {DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f)},  // 15
+
+    //         // Right Face
+    //         {DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)}, // 16
+    //         {DirectX::XMFLOAT3(1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)},  // 17
+    //         {DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)},   // 18
+    //         {DirectX::XMFLOAT3(1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)},  // 19
+
+    //         // Left Face
+    //         {DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f)}, // 20
+    //         {DirectX::XMFLOAT3(-1.0f, -1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 1.0f), DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f)},  // 21
+    //         {DirectX::XMFLOAT3(-1.0f, 1.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f)},   // 22
+    //         {DirectX::XMFLOAT3(-1.0f, 1.0f, -1.0f), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f)}   // 23
+    //     };
+
+    // unsigned short CubeIndices[] =
+    //     {
+    //         0, 2, 1, 0, 3, 2,       // Front face
+    //         4, 6, 5, 4, 7, 6,       // Back face
+    //         8, 10, 9, 8, 11, 10,    // Top face
+    //         12, 14, 13, 12, 15, 14, // Bottom face
+    //         16, 18, 17, 16, 19, 18, // Left face
+    //         20, 22, 21, 20, 23, 22  // Right face
+    //     };
+    // CreateVertexIndexBufferPair(CubeVertices, sizeof(CubeVertices), CubeIndices, sizeof(CubeIndices), ARRAYSIZE(CubeIndices));
 
     CreateTexture();
 }

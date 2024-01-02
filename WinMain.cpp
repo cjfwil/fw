@@ -37,10 +37,10 @@ void StartImgui()
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
-    //ImGui::ShowDemoWindow(); // Show demo window! :)
+    // ImGui::ShowDemoWindow(); // Show demo window! :)
 
     ImGui::Begin("Info");
-    ImGui::Text("%.3f ms", 1000.0f/ImGui::GetIO().Framerate);
+    ImGui::Text("%.3f ms", 1000.0f / ImGui::GetIO().Framerate);
     ImGui::End();
 }
 
@@ -73,23 +73,13 @@ void Init()
         dy = 0;
     }
 
-
-    //init assimp
-    //Assimp::Importer imp;
-    //auto model = imp.ReadFile("COLLADA.dae", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
-    //auto mesh = model->mMeshes[0];
-
-    win32_expandable_list<VertexPositionUVNormal> vertices;
-    vertices.Init();    
-
-
     InitImgui();
 }
 
 void Update()
 {
     bool escapeKeyPressed = (GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0;
-    static bool escapeKeyWasPressed = false;    
+    static bool escapeKeyWasPressed = false;
 
     mouseLookOn = d3d11_window.cursorHidden;
     if (mouseLookOn && !d3d11_window.cursorIsBound)
@@ -140,7 +130,7 @@ void Update()
     viewDir = DirectX::XMVector3Normalize(viewDir);
     right = DirectX::XMVector3Normalize(right);
 
-    float moveSpeed = 1 / 60.0f;
+    float moveSpeed = 1 / 60.0f * 99;
     DirectX::XMVECTOR dir = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
     if (GetAsyncKeyState('W') & 0x8000)
         dir = DirectX::XMVectorAdd(dir, viewDir);
@@ -192,23 +182,28 @@ void Render()
     context->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
     // Set the render target.
     context->OMSetRenderTargets(1, &renderTarget, depthStencil);
-    // Set up the IA stage by setting the input topology and layout.
-    UINT stride = sizeof(VertexPositionColor);
-    UINT offset = 0;
-    context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-    context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    context->IASetInputLayout(inputLayout);
-    // Set up the vertex shader stage.
-    context->VSSetShader(vertexShader, nullptr, 0);
-    context->VSSetConstantBuffers(0, 1, &constantBuffer);
-    // Set up the pixel shader stage.
-    context->PSSetShader(pixelShader, nullptr, 0);
-    context->PSSetShaderResources(0u, 1u, &textureShaderResourceView);
-    context->PSSetSamplers(0, 1, &samplerState);
-    // Calling Draw tells Direct3D to start sending commands to the graphics
-    context->DrawIndexed(indexCount, 0, 0);
+    for (int i = 0; i < mainModel.numElements; ++i)
+    {
+        vertex_index_buffer_pair vi = mainModel.data[i];
+        // Set up the IA stage by setting the input topology and layout.
+        UINT stride = sizeof(VertexPositionUVNormal);
+        UINT offset = 0;
+        context->IASetVertexBuffers(0, 1, &vi.vertexBuffer, &stride, &offset);
+        context->IASetIndexBuffer(vi.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        context->IASetInputLayout(inputLayout);
+        // Set up the vertex shader stage.
+        context->VSSetShader(vertexShader, nullptr, 0);
+        context->VSSetConstantBuffers(0, 1, &constantBuffer);
+        // Set up the pixel shader stage.
+        context->PSSetShader(pixelShader, nullptr, 0);
+        context->PSSetShaderResources(0u, 1u, &textureShaderResourceView);
+        context->PSSetSamplers(0, 1, &samplerState);
+        // Calling Draw tells Direct3D to start sending commands to the graphics
+        context->DrawIndexed(vi.indexCount, 0, 0);
+    }
 }
 
 INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
@@ -256,9 +251,9 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                     {
                         if (d3d11_window.resize)
                         {
-                            //TODO: maybe rethink how this works (onresize func inside struct called from wndproc?)
+                            // TODO: maybe rethink how this works (onresize func inside struct called from wndproc?)
                             CreateWindowSizeDependentResources();
-                            d3d11_window.resize = FALSE; 
+                            d3d11_window.resize = FALSE;
                         }
                         Update();
 

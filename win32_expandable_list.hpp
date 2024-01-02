@@ -15,7 +15,7 @@ struct win32_expandable_list
     DWORD pageSize;
     SIZE_T currentSize;
     SIZE_T numElements;
-    SIZE_T availableElements;
+    SIZE_T availableElements; //add size of based on available elements
     T *data;
 
     SIZE_T CalcAvailableElements()
@@ -24,6 +24,7 @@ struct win32_expandable_list
         return (availableElements);
     }
 
+    //todo allow for intial reserve size to be specified
     void Init()
     {
         SYSTEM_INFO sysInfo;
