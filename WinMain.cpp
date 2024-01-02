@@ -240,8 +240,9 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                     {
                         if (d3d11_window.resize)
                         {
+                            //TODO: maybe rethink how this works (onresize func inside struct called from wndproc?)
                             CreateWindowSizeDependentResources();
-                            d3d11_window.resize = FALSE;
+                            d3d11_window.resize = FALSE; 
                         }
                         Update();
 
