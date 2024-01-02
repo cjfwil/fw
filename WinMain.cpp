@@ -183,7 +183,7 @@ void Render()
     // Set the render target.
     context->OMSetRenderTargets(1, &renderTarget, depthStencil);
 
-    for (int i = 0; i < mainModel.numElements; ++i)
+    for (unsigned int i = 0; i < mainModel.numElements; ++i)
     {
         vertex_index_buffer_pair vi = mainModel.data[i];
         // Set up the IA stage by setting the input topology and layout.

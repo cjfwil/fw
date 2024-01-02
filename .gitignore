@@ -3,6 +3,7 @@
 *.ilk
 *.pdb
 *.obj
+!models/*.obj
 *.cso
 *.lib
 

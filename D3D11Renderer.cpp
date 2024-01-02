@@ -305,12 +305,12 @@ void CreateDeviceDependentResources()
 
     // init assimp
     Assimp::Importer imp;
-    auto model = imp.ReadFile("spider.obj", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
+    auto model = imp.ReadFile("models/spider.obj", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
 
     mainModel.Init();
-    for (int i = 0; i < model->mNumMeshes; ++i)
+    for (unsigned int j = 0; j < model->mNumMeshes; ++j)
     {
-        auto mesh = model->mMeshes[i];
+        auto mesh = model->mMeshes[j];
 
         win32_expandable_list<VertexPositionUVNormal> vertices;
         vertices.Init();
@@ -338,9 +338,9 @@ void CreateDeviceDependentResources()
         {
             const auto &f = mesh->mFaces[i];
             assert(f.mNumIndices == 3);
-            indices.Add(f.mIndices[0]);
-            indices.Add(f.mIndices[2]);
-            indices.Add(f.mIndices[1]);
+            indices.Add((unsigned short)f.mIndices[0]);
+            indices.Add((unsigned short)f.mIndices[2]);
+            indices.Add((unsigned short)f.mIndices[1]);
         }
         vertex_index_buffer_pair vi = CreateVertexIndexBufferPair(vertices.data,
                                     vertices.numElements * sizeof(VertexPositionUVNormal),
