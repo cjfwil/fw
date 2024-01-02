@@ -4,8 +4,9 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/imgui/"
-            ]
+                "${workspaceFolder}/imgui/",
+                "C:/Program Files/Assimp/include"
+            ]            
         }
     ],
     "version": 4

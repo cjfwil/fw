@@ -8,13 +8,16 @@
                 "/Zi",
                 "-Wall",
                 "/EHsc",
-                "/nologo",                
+                "/nologo",  
+                "/I", "..\\..\\Program Files\\Assimp\\include",              
                 //"${fileDirname}\\imgui\\*.cpp", //compile imgui source
                 "/Fe${fileDirname}\\${fileBasenameNoExtension}.exe",
                 "${file}",
                 "/link",
                 "/LIBPATH:build/",
-                "imgui.lib"
+                "imgui.lib",                       
+                "assimp-vc143-mt.lib",
+                "/MACHINE:x64"
             ],
             "options": {
                 "cwd": "${fileDirname}"

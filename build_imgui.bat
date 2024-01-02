@@ -17,6 +17,6 @@ cl %CommonCompileFlags% ..\imgui\imgui_impl_win32.cpp /c /EHsc
 cl %CommonCompileFlags% ..\imgui\imgui_tables.cpp /c /EHsc
 cl %CommonCompileFlags% ..\imgui\imgui_widgets.cpp /c /EHsc
 
-lib imgui.obj imgui_demo.obj imgui_draw.obj imgui_impl_dx11.obj imgui_impl_win32.obj imgui_tables.obj imgui_widgets.obj /OUT:imgui.lib
+lib imgui.obj imgui_demo.obj imgui_draw.obj imgui_impl_dx11.obj imgui_impl_win32.obj imgui_tables.obj imgui_widgets.obj /OUT:imgui.lib /MACHINE:X64
 
 popd

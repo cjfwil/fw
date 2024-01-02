@@ -22,15 +22,15 @@ ID3D11PixelShader *pixelShader;
 ID3D11ShaderResourceView *textureShaderResourceView;
 ID3D11SamplerState *samplerState;
 
-typedef struct _constantBufferStruct
+typedef struct _ModelViewProjectionConstantBuffer
 {
     DirectX::XMFLOAT4X4 world;
     DirectX::XMFLOAT4X4 view;
     DirectX::XMFLOAT4X4 projection;
-} ConstantBufferStruct;
-static_assert((sizeof(ConstantBufferStruct) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
+} ModelViewProjectionConstantBuffer;
+static_assert((sizeof(ModelViewProjectionConstantBuffer) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
 
-ConstantBufferStruct constantBufferData;
+ModelViewProjectionConstantBuffer constantBufferData;
 unsigned int indexCount;
 unsigned int frameCount;
 
@@ -134,7 +134,7 @@ HRESULT CreateShaderPair(char *vertexShaderPath, char *pixelShaderPath, D3D11_IN
     hr = device->CreatePixelShader(bytes, bytesRead, nullptr, &pixelShader);
     delete bytes;
 
-    CD3D11_BUFFER_DESC cbDesc(sizeof(ConstantBufferStruct), D3D11_BIND_CONSTANT_BUFFER);
+    CD3D11_BUFFER_DESC cbDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
     hr = device->CreateBuffer(&cbDesc, nullptr, &constantBuffer);
 
     fclose(vShader);
