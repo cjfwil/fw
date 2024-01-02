@@ -2,7 +2,11 @@
 #define EXPANDABLE_LIST_HPP
 
 #pragma comment(lib, "user32.lib")
-#include "Windows.h"
+#pragma warning(push, 0)
+#pragma warning(disable : 4365)
+#pragma warning(disable : 4668)
+#include <Windows.h>
+#pragma warning(pop)
 
 template <typename T>
 struct win32_expandable_list

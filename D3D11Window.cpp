@@ -11,6 +11,8 @@
 #pragma comment(lib, "d3dcompiler.lib")
 
 #pragma warning(push, 0)
+#pragma warning(disable : 4365)
+#pragma warning(disable : 4668)
 #include <windows.h>
 #include <shellscalingapi.h>
 #include <d3d11.h>
@@ -32,8 +34,7 @@ struct D3D11_Window
     HWND hwnd;
     RECT rc;
     HMENU hMenu;
-
-    D3D_FEATURE_LEVEL featureLevel;
+    
     ID3D11Device *device;
     ID3D11DeviceContext *context;
     IDXGISwapChain *swapChain;
@@ -52,6 +53,7 @@ struct D3D11_Window
     BOOL resize;
     BOOL cursorHidden;
     BOOL cursorIsBound;
+    D3D_FEATURE_LEVEL featureLevel;
 
     inline float CalculateAspectRatio()
     {

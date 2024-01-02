@@ -1,14 +1,15 @@
 #pragma warning(push, 0)
+#pragma warning(disable : 4365)
+#pragma warning(disable : 4668)
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_win32.h"
 #include "imgui/imgui_impl_dx11.h"
-
-#pragma warning(disable : 4365)
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #pragma warning(pop)
 
+#include "win32_expandable_list.hpp"
 #include "D3D11Window.cpp"
 #include "D3D11Renderer.cpp"
 
@@ -74,9 +75,13 @@ void Init()
 
 
     //init assimp
-    Assimp::Importer imp;
-    auto model = imp.ReadFile("COLLADA.dae", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
-    auto mesh = model->mMeshes[0];
+    //Assimp::Importer imp;
+    //auto model = imp.ReadFile("COLLADA.dae", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
+    //auto mesh = model->mMeshes[0];
+
+    win32_expandable_list<VertexPositionUVNormal> vertices;
+    vertices.Init();    
+
 
     InitImgui();
 }
