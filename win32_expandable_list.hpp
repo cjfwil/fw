@@ -1,17 +1,11 @@
-#ifndef EXPANDABLE_LIST_H
-#define EXPANDABLE_LIST_H
+#ifndef EXPANDABLE_LIST_HPP
+#define EXPANDABLE_LIST_HPP
 
 #pragma comment(lib, "user32.lib")
 #include "Windows.h"
 
-u_int u_ceil(float x)
-{
-    u_int iPart = static_cast<u_int>(x);
-    return (iPart + 1);
-}
-
 template <typename T>
-struct expandable_list
+struct win32_expandable_list
 {
     // BOOL initialised = FALSE;
     DWORD pageSize;
@@ -41,7 +35,10 @@ struct expandable_list
         }
         else
         {
-            // TODO: error;
+            DWORD err = GetLastError();
+            char buff[1024] = {};
+            wsprintfA(buff, "WIN32 ERROR: %d", err);
+            OutputDebugStringA(buff);
         }
     }
 
@@ -62,7 +59,7 @@ struct expandable_list
         {
             DWORD err = GetLastError();
             char buff[1024] = {};
-            wsprintfA(buff, "%d", err);
+            wsprintfA(buff, "WIN32 ERROR: %d", err);
             OutputDebugStringA(buff);
         }
     }
@@ -84,7 +81,7 @@ struct expandable_list
         {
             DWORD err = GetLastError();
             char buff[1024] = {};
-            wsprintfA(buff, "%d", err);
+            wsprintfA(buff, "WIN32 ERROR: %d", err);
             OutputDebugStringA(buff);
         }
     }

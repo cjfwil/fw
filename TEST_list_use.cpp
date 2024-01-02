@@ -1,8 +1,9 @@
-#include "expandable_list.hpp"
+#pragma warning(push, 0)
+#include "win32_expandable_list.hpp"
 
 int main(void)
 {
-    expandable_list<int> el;
+    win32_expandable_list<int> el;
     el.Init();
     el.Add(0xffffffff);
     
@@ -14,3 +15,4 @@ int main(void)
         el.data[i] = 1;        
     }
 }
+#pragma warning(pop)
