@@ -77,7 +77,7 @@ public:
 
     void Add(T element)
     {
-        if (numElements > availableElements)
+        if (numElements >= availableElements)
         {
             Expand(1);
         }

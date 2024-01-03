@@ -100,7 +100,7 @@ void CreateViewAndPerspective()
                              aspectRatioY),
                 aspectRatioX,
                 0.01f,
-                1000.0f)));
+                3000.0f))); //make infinite view matrix?
 }
 
 void CreateWindowSizeDependentResources()
@@ -188,7 +188,7 @@ vertex_index_buffer_pair CreateVertexIndexBufferPair(VertexPositionUVNormal *ver
 
 void CreateTexture()
 {
-    unsigned int width = 16;
+    unsigned int width = 512;
     unsigned int height = width;
     unsigned int *clrData = (unsigned int *)malloc(width * height * sizeof(unsigned int));
     for (u_int x = 0; x < width; ++x)
@@ -285,7 +285,7 @@ void CreateDeviceDependentResources()
 
     // init assimp
     Assimp::Importer imp;
-    auto model = imp.ReadFile("models/spider.obj", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenUVCoords | aiProcess_GenNormals);
+    auto model = imp.ReadFile("models/sponza.obj", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenUVCoords | aiProcess_GenNormals);
 
     mainModel.Init();
     for (unsigned int j = 0; j < model->mNumMeshes; ++j)
