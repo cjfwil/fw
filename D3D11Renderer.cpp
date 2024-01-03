@@ -188,14 +188,14 @@ vertex_index_buffer_pair CreateVertexIndexBufferPair(VertexPositionUVNormal *ver
 
 void CreateTexture()
 {
-    unsigned int width = 64;
-    unsigned int height = 64;
+    unsigned int width = 16;
+    unsigned int height = width;
     unsigned int *clrData = (unsigned int *)malloc(width * height * sizeof(unsigned int));
     for (u_int x = 0; x < width; ++x)
     {
         for (u_int y = 0; y < height; ++y)
         {
-            clrData[x + y * width] = ((x ^ y) % 2 == 0) ? 0xffffffff : 0x00000000;
+            clrData[x + y * width] = ((x ^ y) % 2 == 0) ? 0x00ff00ff : 0x00000000;
         }
     }
 
@@ -322,8 +322,8 @@ void CreateDeviceDependentResources()
             v.pos.y = mesh->mVertices[i].y;
             v.pos.z = mesh->mVertices[i].z;
 
-            // v.uv.x = mesh->mTextureCoords[i].x;
-            // v.uv.y = mesh->mTextureCoords[i].y;
+            v.uv.x = (mesh->mTextureCoords[0])[i].x;
+            v.uv.y = (mesh->mTextureCoords[0])[i].y;
 
             v.normal.x = mesh->mNormals[i].x;
             v.normal.y = mesh->mNormals[i].y;
