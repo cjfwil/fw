@@ -12,10 +12,14 @@ template <typename T>
 struct win32_expandable_list
 {
     // BOOL initialised = FALSE;
+private:
     DWORD pageSize;
     SIZE_T currentSize;
+
+public:
     SIZE_T numElements;
-    SIZE_T availableElements; //add size of based on available elements
+    SIZE_T size;
+    SIZE_T availableElements;
     T *data;
 
     SIZE_T CalcAvailableElements()
@@ -24,7 +28,8 @@ struct win32_expandable_list
         return (availableElements);
     }
 
-    //todo allow for intial reserve size to be specified
+    // TODO: perhaps create an alloc function which is called in both init and expand
+    // todo allow for intial reserve size to be specified
     void Init()
     {
         SYSTEM_INFO sysInfo;
@@ -37,6 +42,7 @@ struct win32_expandable_list
             currentSize = pageSize;
             CalcAvailableElements();
             numElements = 0;
+            size = 0;
         }
         else
         {
@@ -58,7 +64,7 @@ struct win32_expandable_list
             this->Free();
             data = (T *)result;
             currentSize = newSize;
-            CalcAvailableElements();        
+            CalcAvailableElements();
         }
         else
         {
@@ -77,6 +83,7 @@ struct win32_expandable_list
         }
         data[numElements] = element;
         numElements++;
+        size += sizeof(T);
     }
 
     void Free()
