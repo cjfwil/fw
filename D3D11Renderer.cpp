@@ -17,11 +17,13 @@
 
 #include "D3D11Window.cpp"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 ID3D11VertexShader *vertexShader;
 ID3D11InputLayout *inputLayout;
 ID3D11PixelShader *pixelShader;
 
-ID3D11ShaderResourceView *textureShaderResourceView;
 ID3D11SamplerState *samplerState;
 
 typedef struct _ModelViewProjectionConstantBuffer
@@ -37,14 +39,15 @@ unsigned int frameCount;
 
 ID3D11Buffer *constantBuffer;
 
-struct vertex_index_buffer_pair
+struct mesh_buffers
 {
     ID3D11Buffer *vertexBuffer;
     ID3D11Buffer *indexBuffer;
+    ID3D11ShaderResourceView *textureShaderResourceView;
     unsigned int indexCount;
 };
 
-win32_expandable_list<vertex_index_buffer_pair> mainModel;
+win32_expandable_list<mesh_buffers> mainModel;
 
 typedef struct _vertexPositionColor
 {
@@ -87,9 +90,7 @@ void CreateViewAndPerspective()
                 up)));
 
     float aspectRatioX = d3d11_window.CalculateAspectRatio();
-    float aspectRatioY = aspectRatioX < (16.0f / 9.0f) ? aspectRatioX /
-                                                             (16.0f / 9.0f)
-                                                       : 1.0f;
+    float aspectRatioY = aspectRatioX < (16.0f / 9.0f) ? aspectRatioX / (16.0f / 9.0f) : 1.0f;
 
     DirectX::XMStoreFloat4x4(
         &constantBufferData.projection,
@@ -100,7 +101,7 @@ void CreateViewAndPerspective()
                              aspectRatioY),
                 aspectRatioX,
                 0.01f,
-                3000.0f))); //make infinite view matrix?
+                3000.0f))); // make infinite view matrix?
 }
 
 void CreateWindowSizeDependentResources()
@@ -150,53 +151,32 @@ HRESULT CreateShaderPair(char *vertexShaderPath, char *pixelShaderPath, D3D11_IN
     return (hr);
 }
 
-vertex_index_buffer_pair CreateVertexIndexBufferPair(VertexPositionUVNormal *vertices,
-                                                     unsigned int verticesSize,
-                                                     unsigned short *indices,
-                                                     unsigned int indicesSize,
-                                                     UINT indexCount)
+ID3D11ShaderResourceView *CreateTextureForShader(char *path = "")
 {
-    HRESULT hr = S_OK;
-    ID3D11Device *device = d3d11_window.device;
-
-    // Create Vertex buffer:
-    CD3D11_BUFFER_DESC vDesc(verticesSize, D3D11_BIND_VERTEX_BUFFER);
-    D3D11_SUBRESOURCE_DATA vData;
-    ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
-    vData.pSysMem = vertices;
-    vData.SysMemPitch = 0;
-    vData.SysMemSlicePitch = 0;
-
-    vertex_index_buffer_pair result = {};
-
-    hr = device->CreateBuffer(&vDesc, &vData, &result.vertexBuffer);
-
-    // Create index buffer:
-    result.indexCount = indexCount;
-    CD3D11_BUFFER_DESC indexDesc(indicesSize, D3D11_BIND_INDEX_BUFFER);
-    D3D11_SUBRESOURCE_DATA indexData;
-    ZeroMemory(&indexData, sizeof(D3D11_SUBRESOURCE_DATA));
-    indexData.pSysMem = indices;
-    indexData.SysMemPitch = 0;
-    indexData.SysMemSlicePitch = 0;
-
-    hr = device->CreateBuffer(&indexDesc, &indexData, &result.indexBuffer);
-    // TODO: hresult error checking
-
-    return (result);
-}
-
-void CreateTexture()
-{
-    unsigned int width = 512;
-    unsigned int height = width;
-    unsigned int *clrData = (unsigned int *)malloc(width * height * sizeof(unsigned int));
-    for (u_int x = 0; x < width; ++x)
+    int forcedN = 4;
+    unsigned char *clrData = NULL;
+    unsigned int width = 64;
+    unsigned int height = 64;
+    bool isNullTexture = (path[0] == '\0') ? true : false;
+    if (isNullTexture)
     {
-        for (u_int y = 0; y < height; ++y)
+        // null texture
+        clrData = (unsigned char *)malloc(width * height * forcedN);
+        for (u_int x = 0; x < width; ++x)
         {
-            clrData[x + y * width] = ((x ^ y) % 2 == 0) ? (u_int)0x00ff00ff : (u_int)0x00000000;
+            for (u_int y = 0; y < height; ++y)
+            {
+                ((unsigned int *)clrData)[x + y * width] = ((x ^ y) % 2 == 0) ? (u_int)0x00ff00ff : (u_int)0x00000000;
+            }
         }
+    }
+    else
+    {
+        int x, y, n;
+        stbi_set_flip_vertically_on_load(1);
+        clrData = stbi_load(path, &x, &y, &n, forcedN);
+        width = x;
+        height = y;
     }
 
     D3D11_TEXTURE2D_DESC texDesc = {};
@@ -204,7 +184,7 @@ void CreateTexture()
     texDesc.Height = height;
     texDesc.MipLevels = 0;
     texDesc.ArraySize = 1;
-    texDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     texDesc.SampleDesc.Count = 1;
     texDesc.SampleDesc.Quality = 0;
     texDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -225,9 +205,16 @@ void CreateTexture()
         // TODO:
     }
 
-    d3d11_window.context->UpdateSubresource(texture, 0, nullptr, clrData, width * sizeof(unsigned int), 0);
+    d3d11_window.context->UpdateSubresource(texture, 0, nullptr, clrData, width * forcedN, 0);
 
-    free(clrData);
+    if (isNullTexture)
+    {
+        free(clrData);
+    }
+    else
+    {
+        stbi_image_free(clrData);
+    }
 
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.Format = texDesc.Format;
@@ -235,6 +222,7 @@ void CreateTexture()
     srvDesc.Texture2D.MostDetailedMip = 0;
     srvDesc.Texture2D.MipLevels = UINT_MAX;
 
+    ID3D11ShaderResourceView *textureShaderResourceView;
     hr = d3d11_window.device->CreateShaderResourceView(texture, &srvDesc, &textureShaderResourceView);
 
     if (FAILED(hr))
@@ -243,6 +231,46 @@ void CreateTexture()
     }
 
     d3d11_window.context->GenerateMips(textureShaderResourceView);
+    return (textureShaderResourceView);
+}
+
+mesh_buffers CreateVertexIndexBufferPair(VertexPositionUVNormal *vertices,
+                                         unsigned int verticesSize,
+                                         unsigned short *indices,
+                                         unsigned int indicesSize,
+                                         UINT indexCount,
+                                         char *path)
+{
+    HRESULT hr = S_OK;
+    ID3D11Device *device = d3d11_window.device;
+
+    // Create Vertex buffer:
+    CD3D11_BUFFER_DESC vDesc(verticesSize, D3D11_BIND_VERTEX_BUFFER);
+    D3D11_SUBRESOURCE_DATA vData;
+    ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
+    vData.pSysMem = vertices;
+    vData.SysMemPitch = 0;
+    vData.SysMemSlicePitch = 0;
+
+    mesh_buffers result = {};
+
+    hr = device->CreateBuffer(&vDesc, &vData, &result.vertexBuffer);
+
+    // Create index buffer:
+    result.indexCount = indexCount;
+    CD3D11_BUFFER_DESC indexDesc(indicesSize, D3D11_BIND_INDEX_BUFFER);
+    D3D11_SUBRESOURCE_DATA indexData;
+    ZeroMemory(&indexData, sizeof(D3D11_SUBRESOURCE_DATA));
+    indexData.pSysMem = indices;
+    indexData.SysMemPitch = 0;
+    indexData.SysMemSlicePitch = 0;
+
+    hr = device->CreateBuffer(&indexDesc, &indexData, &result.indexBuffer);
+    // TODO: hresult error checking
+
+    result.textureShaderResourceView = CreateTextureForShader(path);
+
+    return (result);
 }
 
 void CreateSamplerState()
@@ -285,24 +313,25 @@ void CreateDeviceDependentResources()
 
     // init assimp
     Assimp::Importer imp;
-    auto model = imp.ReadFile("models/sponza.obj", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenUVCoords | aiProcess_GenNormals);
+    auto scene = imp.ReadFile("models/Sponza-master/sponza.obj", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenUVCoords | aiProcess_GenNormals);
 
     mainModel.Init();
-    for (unsigned int j = 0; j < model->mNumMeshes; ++j)
+    for (unsigned int j = 0; j < scene->mNumMeshes; ++j)
     {
-        auto mesh = model->mMeshes[j];
+        auto mesh = scene->mMeshes[j];
 
         win32_expandable_list<VertexPositionUVNormal> vertices;
         vertices.Init();
 
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
         {
+            float scale = 0.01f;
             VertexPositionUVNormal v = {};
-            v.pos.x = mesh->mVertices[i].x;
-            v.pos.y = mesh->mVertices[i].y;
-            v.pos.z = mesh->mVertices[i].z;
+            v.pos.x = mesh->mVertices[i].x*scale;
+            v.pos.y = mesh->mVertices[i].y*scale;
+            v.pos.z = mesh->mVertices[i].z*scale;
 
-            v.uv.x = (mesh->mTextureCoords[0])[i].x;
+            v.uv.x = (mesh->mTextureCoords[0])[i].x;            
             v.uv.y = (mesh->mTextureCoords[0])[i].y;
 
             v.normal.x = mesh->mNormals[i].x;
@@ -322,16 +351,38 @@ void CreateDeviceDependentResources()
             indices.Add((unsigned short)f.mIndices[2]);
             indices.Add((unsigned short)f.mIndices[1]);
         }
-        vertex_index_buffer_pair vi = CreateVertexIndexBufferPair(vertices.data,
-                                    (UINT)vertices.size,
-                                    indices.data,
-                                    (UINT)indices.size,
-                                    (UINT)indices.numElements);
-        
+
+        // materials
+        unsigned int mi = mesh->mMaterialIndex;
+        char path[256] = {};
+        unsigned int texCount = 0;
+        if (mi >= 0)
+        {
+            aiTextureType type = aiTextureType_DIFFUSE;
+            aiMaterial *mat = scene->mMaterials[mi];
+            texCount = mat->GetTextureCount(type);
+            for (int i = 0; i < texCount; i++)
+            {
+                aiString str;
+                mat->GetTexture(type, i, &str);
+                //"models/Sponza-master/textures/background.tga"
+                // path = str.C_Str();
+                wsprintfA(path, "models/Sponza-master/%s", str.C_Str());
+            }
+        }
+
+        if (texCount <= 0)
+        {
+            wsprintfA(path, "");
+        }
+        mesh_buffers vi = CreateVertexIndexBufferPair(vertices.data,
+                                                      (UINT)vertices.size,
+                                                      indices.data,
+                                                      (UINT)indices.size,
+                                                      (UINT)indices.numElements, path);
+
         mainModel.Add(vi);
     }
-
-    CreateTexture();
 }
 
 #endif

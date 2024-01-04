@@ -41,6 +41,7 @@ void StartImgui()
 
     ImGui::Begin("Info");
     ImGui::Text("%.3f ms", 1000.0f / ImGui::GetIO().Framerate);
+    ImGui::Text("%d meshes", mainModel.numElements);
     ImGui::End();
 }
 
@@ -109,7 +110,7 @@ void Update()
 
     if (mouseLookOn)
     {
-        float cameraSpeed = 0.0025f;
+        float cameraSpeed = 0.0025f;        
         yaw -= (float)dx * -cameraSpeed;
         pitch -= (float)dy * cameraSpeed;
         pitch = max(-DirectX::XM_PIDIV2 + 0.0001f, min(DirectX::XM_PIDIV2 - 0.0001f, pitch));
@@ -130,7 +131,7 @@ void Update()
     viewDir = DirectX::XMVector3Normalize(viewDir);
     right = DirectX::XMVector3Normalize(right);
 
-    float moveSpeed = 1 / 60.0f * 99;
+    float moveSpeed = 1 / 60.0f;
     DirectX::XMVECTOR dir = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
     if (GetAsyncKeyState('W') & 0x8000)
         dir = DirectX::XMVectorAdd(dir, viewDir);
@@ -185,7 +186,7 @@ void Render()
 
     for (unsigned int i = 0; i < mainModel.numElements; ++i)
     {
-        vertex_index_buffer_pair vi = mainModel.data[i];
+        mesh_buffers vi = mainModel.data[i];
         // Set up the IA stage by setting the input topology and layout.
         UINT stride = sizeof(VertexPositionUVNormal);
         UINT offset = 0;
@@ -199,7 +200,7 @@ void Render()
         context->VSSetConstantBuffers(0, 1, &constantBuffer);
         // Set up the pixel shader stage.
         context->PSSetShader(pixelShader, nullptr, 0);
-        context->PSSetShaderResources(0u, 1u, &textureShaderResourceView);
+        context->PSSetShaderResources(0u, 1u, &vi.textureShaderResourceView);
         context->PSSetSamplers(0, 1, &samplerState);
         // Calling Draw tells Direct3D to start sending commands to the graphics
         context->DrawIndexed(vi.indexCount, 0, 0);
@@ -260,7 +261,7 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                         StartImgui();
                         Render();
                         EndImgui();
-                        d3d11_window.swapChain->Present(1, 0);
+                        d3d11_window.swapChain->Present(0, 0);
                     }
                 }
             }

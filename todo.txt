@@ -4,8 +4,12 @@ x Mipmapping for textures
 - large terrain
 - octree partitioned objects in world
 
-- combine shader loading
+- proper shader loading architecture
 
 x imgui
 
-- ini file keeps window dimensions and position
+- ini file preserves window dimensions and position across sessions
+
+- sharpening image processing filter % controllable
+
+- infinite view matrix
