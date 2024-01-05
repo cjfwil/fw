@@ -51,6 +51,7 @@ PS_OUTPUT ps_main(PS_INPUT In)
     float3 diffuseLight = float3(1.0f, 1.0f, 1.0f);
 
     float4 diffuse = tex.Sample(smplr, In.uv);
+    clip(diffuse.a < 0.1f ? -1 : 1); //alpha test
 
     // gouraud calculation
     float3 outClr = diffuse.xyz * ambient;

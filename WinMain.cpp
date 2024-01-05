@@ -15,6 +15,8 @@
 
 static bool mouseLookOn;
 
+static bool vsyncOn = true;
+
 void InitImgui()
 {
     // Setup Dear ImGui context
@@ -44,6 +46,10 @@ void StartImgui()
     ImGui::Text("%d meshes", mainModel.numElements);
     ImGui::Text("%d loaded textures", numLoadedTextures);
     ImGui::Text("%d null textures", numNullTextures);
+    ImGui::End();
+
+    ImGui::Begin("Settings");
+    ImGui::Checkbox("V-Sync", &vsyncOn);
     ImGui::End();
 }
 
@@ -264,7 +270,7 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                         StartImgui();
                         Render();
                         EndImgui();
-                        d3d11_window.swapChain->Present(0, 0);
+                        d3d11_window.swapChain->Present((vsyncOn) ? 1 : 0, 0);
                     }
                 }
             }
