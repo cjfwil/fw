@@ -191,7 +191,7 @@ void Render()
     context->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
     // Set the render target.
     context->OMSetRenderTargets(1, &renderTarget, depthStencil);
-    //context->OMSetBlendState(blendState, NULL, 0xffffffff);
+    // context->OMSetBlendState(blendState, NULL, 0xffffffff);
 
     for (unsigned int i = 0; i < mainModel.numElements; ++i)
     {
@@ -207,9 +207,20 @@ void Render()
         // Set up the vertex shader stage.
         context->VSSetShader(vertexShader, nullptr, 0);
         context->VSSetConstantBuffers(0, 1, &constantBuffer);
+
+        // rasteriser stage
+        if (vi.cullBackface)
+        {
+            context->RSSetState(rasterStateBackCull);
+        }
+        else
+        {
+            context->RSSetState(rasterStateNoCull);
+        }
+
         // Set up the pixel shader stage.
         context->PSSetShader(pixelShader, nullptr, 0);
-        context->PSSetShaderResources(0u, 1u, &textureViews.data[vi.textureIndex]);
+        context->PSSetShaderResources(0u, 1u, &textures.data[vi.textureIndex].textureView);
         context->PSSetSamplers(0, 1, &samplerState);
         // Calling Draw tells Direct3D to start sending commands to the graphics
         context->DrawIndexed(vi.indexCount, 0, 0);

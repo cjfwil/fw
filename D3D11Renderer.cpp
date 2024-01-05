@@ -30,6 +30,9 @@ ID3D11SamplerState *samplerState;
 
 ID3D11BlendState* blendState;
 
+ID3D11RasterizerState* rasterStateNoCull;
+ID3D11RasterizerState* rasterStateBackCull;
+
 typedef struct _ModelViewProjectionConstantBuffer
 {
     DirectX::XMFLOAT4X4 world;
@@ -50,10 +53,17 @@ struct mesh_buffers
     
     unsigned int textureIndex;
     unsigned int indexCount;
+    bool cullBackface = true;
+};
+
+struct texture_info
+{
+    ID3D11ShaderResourceView* textureView;
+    bool hasAlpha;
 };
 
 win32_expandable_list<mesh_buffers> mainModel;
-win32_expandable_list<ID3D11ShaderResourceView*> textureViews;
+win32_expandable_list<texture_info> textures;
 win32_expandable_list<key_value_pair> texturePaths;
 unsigned int numNullTextures = 0;
 unsigned int numLoadedTextures = 0;
@@ -160,8 +170,10 @@ HRESULT CreateShaderPair(char *vertexShaderPath, char *pixelShaderPath, D3D11_IN
     return (hr);
 }
 
-ID3D11ShaderResourceView *CreateTextureForShader(char *path = "")
+texture_info CreateTextureForShader(char *path = "")
 {
+    texture_info result = {};
+
     int forcedN = 4;
     unsigned char *clrData = NULL;
     unsigned int width;
@@ -182,6 +194,7 @@ ID3D11ShaderResourceView *CreateTextureForShader(char *path = "")
             }
         }
         numNullTextures++;
+        result.hasAlpha = true;
     }
     else
     {        
@@ -191,6 +204,9 @@ ID3D11ShaderResourceView *CreateTextureForShader(char *path = "")
         width = x;
         height = y;
         numLoadedTextures++;
+        if (n == 4) {
+            result.hasAlpha = true;
+        }
     }
 
     D3D11_TEXTURE2D_DESC texDesc = {};
@@ -235,7 +251,7 @@ ID3D11ShaderResourceView *CreateTextureForShader(char *path = "")
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MostDetailedMip = 0;
     srvDesc.Texture2D.MipLevels = UINT_MAX;
-
+    
     ID3D11ShaderResourceView *textureShaderResourceView;
     hr = d3d11_window.device->CreateShaderResourceView(texture, &srvDesc, &textureShaderResourceView);
 
@@ -245,7 +261,8 @@ ID3D11ShaderResourceView *CreateTextureForShader(char *path = "")
     }
 
     d3d11_window.context->GenerateMips(textureShaderResourceView);
-    return (textureShaderResourceView);
+    result.textureView = textureShaderResourceView;
+    return (result);
 }
 
 mesh_buffers CreateVertexIndexBufferPair(VertexPositionUVNormal *vertices,
@@ -289,6 +306,7 @@ mesh_buffers CreateVertexIndexBufferPair(VertexPositionUVNormal *vertices,
         result.textureIndex = kvp->value;
     }
 
+    result.cullBackface = (textures.data[result.textureIndex].hasAlpha) ? false : true;
 
     return (result);
 }
@@ -318,6 +336,7 @@ void CreateTexSamplerState()
         // TODO:
     }
 
+    // set alpha blending true/false
     D3D11_BLEND_DESC blendDesc = {};
     blendDesc.RenderTarget[0].BlendEnable = TRUE;
     blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
@@ -328,6 +347,15 @@ void CreateTexSamplerState()
     blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
     blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
     d3d11_window.device->CreateBlendState(&blendDesc, &blendState);
+
+    
+    D3D11_RASTERIZER_DESC rasterDesc = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT{});
+    rasterDesc.CullMode = D3D11_CULL_NONE;
+    d3d11_window.device->CreateRasterizerState(&rasterDesc, &rasterStateNoCull);
+
+    rasterDesc.CullMode = D3D11_CULL_BACK;
+    d3d11_window.device->CreateRasterizerState(&rasterDesc, &rasterStateBackCull);
+
 }
 
 void CreateDeviceDependentResources()
@@ -349,9 +377,8 @@ void CreateDeviceDependentResources()
     Assimp::Importer imp;
     auto scene = imp.ReadFile("models/Sponza-master/sponza.obj", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenUVCoords | aiProcess_GenNormals);
 
-    mainModel.Init();
-    textureViews.Init();
-    textureViews.Add(CreateTextureForShader()); //adding the null texture as index 0
+    mainModel.Init();        
+    textures.Add(CreateTextureForShader()); //adding the null texture as index 0
     for (unsigned int j = 0; j < scene->mNumMeshes; ++j)
     {
         auto mesh = scene->mMeshes[j];
@@ -404,10 +431,10 @@ void CreateDeviceDependentResources()
                 wsprintfA(path, "models/Sponza-master/%s", str.C_Str());
                 key_value_pair* kvp = GetValueFromKeyLinear(texturePaths, path);
                 if (kvp == NULL) { 
-                    textureViews.Add(CreateTextureForShader(path));
+                    textures.Add(CreateTextureForShader(path));
 
                     key_value_pair newKvp = {};
-                    newKvp.value = textureViews.numElements-1;
+                    newKvp.value = textures.numElements-1;
                     strcpy(newKvp.key, path);
                     texturePaths.Add(newKvp);                    
                 }                
@@ -423,7 +450,7 @@ void CreateDeviceDependentResources()
                                                       indices.data,
                                                       (UINT)indices.size,
                                                       (UINT)indices.numElements, path);
-
+        
         mainModel.Add(vi);
     }
 }

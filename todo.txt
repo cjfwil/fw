@@ -1,3 +1,5 @@
+- phong blinn lighting, normal and specular maps
+
 x Mipmapping for textures
 - skybox
 
@@ -21,7 +23,7 @@ x dont reload duplicate textures <<- implement hash table for this
 - why is there a null texture in sponza?
 - also there is no top geometery to the south door frame? Is that an issue with model or my code?
 
-- no backface culling for vines?
+- no backface culling for vines and chains?
 
 - real time dir light updating
 - add point light
