@@ -13,12 +13,12 @@
 #include <stdio.h>
 #include <memory.h>
 #include <directxmath.h>
-#pragma warning(pop)
-
-#include "D3D11Window.cpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#pragma warning(pop)
+
+#include "D3D11Window.cpp"
 
 ID3D11VertexShader *vertexShader;
 ID3D11InputLayout *inputLayout;
@@ -48,6 +48,8 @@ struct mesh_buffers
 };
 
 win32_expandable_list<mesh_buffers> mainModel;
+unsigned int numNullTextures = 0;
+unsigned int numLoadedTextures = 0;
 
 typedef struct _vertexPositionColor
 {
@@ -155,12 +157,15 @@ ID3D11ShaderResourceView *CreateTextureForShader(char *path = "")
 {
     int forcedN = 4;
     unsigned char *clrData = NULL;
-    unsigned int width = 64;
-    unsigned int height = 64;
+    unsigned int width;
+    unsigned int height;
+    //todo: maybe define isNullTexture based on whether stbi_load succeeds
     bool isNullTexture = (path[0] == '\0') ? true : false;
     if (isNullTexture)
     {
         // null texture
+        width = 64;
+        height = 64;
         clrData = (unsigned char *)malloc(width * height * forcedN);
         for (u_int x = 0; x < width; ++x)
         {
@@ -169,14 +174,16 @@ ID3D11ShaderResourceView *CreateTextureForShader(char *path = "")
                 ((unsigned int *)clrData)[x + y * width] = ((x ^ y) % 2 == 0) ? (u_int)0x00ff00ff : (u_int)0x00000000;
             }
         }
+        numNullTextures++;
     }
     else
-    {
+    {        
         int x, y, n;
         stbi_set_flip_vertically_on_load(1);
         clrData = stbi_load(path, &x, &y, &n, forcedN);
         width = x;
         height = y;
+        numLoadedTextures++;
     }
 
     D3D11_TEXTURE2D_DESC texDesc = {};
@@ -330,11 +337,11 @@ void CreateDeviceDependentResources()
         {
             float scale = 0.01f;
             VertexPositionUVNormal v = {};
-            v.pos.x = mesh->mVertices[i].x*scale;
-            v.pos.y = mesh->mVertices[i].y*scale;
-            v.pos.z = mesh->mVertices[i].z*scale;
+            v.pos.x = mesh->mVertices[i].x * scale;
+            v.pos.y = mesh->mVertices[i].y * scale;
+            v.pos.z = mesh->mVertices[i].z * scale;
 
-            v.uv.x = (mesh->mTextureCoords[0])[i].x;            
+            v.uv.x = (mesh->mTextureCoords[0])[i].x;
             v.uv.y = (mesh->mTextureCoords[0])[i].y;
 
             v.normal.x = mesh->mNormals[i].x;

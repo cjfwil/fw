@@ -13,3 +13,8 @@ x imgui
 - sharpening image processing filter % controllable
 
 - infinite view matrix
+
+- dont reload duplicate textures <<- implement linked list for this
+
+- why is there a null texture in sponza?
+- also there is no top geometery to the south door frame? Is that an issue with model or my code?

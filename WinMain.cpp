@@ -42,6 +42,8 @@ void StartImgui()
     ImGui::Begin("Info");
     ImGui::Text("%.3f ms", 1000.0f / ImGui::GetIO().Framerate);
     ImGui::Text("%d meshes", mainModel.numElements);
+    ImGui::Text("%d loaded textures", numLoadedTextures);
+    ImGui::Text("%d null textures", numNullTextures);
     ImGui::End();
 }
 
@@ -73,7 +75,7 @@ void Init()
         dx = 0;
         dy = 0;
     }
-    
+
     InitImgui();
 }
 
@@ -110,7 +112,7 @@ void Update()
 
     if (mouseLookOn)
     {
-        float cameraSpeed = 0.0025f;        
+        float cameraSpeed = 0.0025f;
         yaw -= (float)dx * -cameraSpeed;
         pitch -= (float)dy * cameraSpeed;
         pitch = max(-DirectX::XM_PIDIV2 + 0.0001f, min(DirectX::XM_PIDIV2 - 0.0001f, pitch));
