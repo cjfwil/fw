@@ -273,13 +273,14 @@ mesh_buffers CreateVertexIndexBufferPair(VertexPositionUVNormal *vertices,
     return (result);
 }
 
-void CreateSamplerState()
+void CreateTexSamplerState()
 {
     D3D11_SAMPLER_DESC sd = {};
     sd.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
     sd.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
     sd.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    sd.ComparisonFunc = D3D11_COMPARISON_NEVER;
     sd.MipLODBias = 0.0f;
     sd.MinLOD = 0.0f;
     sd.MaxLOD = D3D11_FLOAT32_MAX;
@@ -300,6 +301,8 @@ void CreateSamplerState()
 
 void CreateDeviceDependentResources()
 {
+    CreateTexSamplerState();
+
     // todo run creation of meshes and shaders asynchronously
     D3D11_INPUT_ELEMENT_DESC iaDescNormals[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
@@ -365,8 +368,6 @@ void CreateDeviceDependentResources()
             {
                 aiString str;
                 mat->GetTexture(type, i, &str);
-                //"models/Sponza-master/textures/background.tga"
-                // path = str.C_Str();
                 wsprintfA(path, "models/Sponza-master/%s", str.C_Str());
             }
         }

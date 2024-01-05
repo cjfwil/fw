@@ -50,7 +50,7 @@ PS_OUTPUT ps_main(PS_INPUT In)
     float3 ambient = float3(0.2f, 0.2f, 0.2f);
     float3 diffuseLight = float3(1.0f, 1.0f, 1.0f);
 
-    float4 diffuse = tex.Sample(smplr, float2(In.uv.x % 1, In.uv.y % 1));
+    float4 diffuse = tex.Sample(smplr, In.uv);
 
     // gouraud calculation
     float3 outClr = diffuse.xyz * ambient;
