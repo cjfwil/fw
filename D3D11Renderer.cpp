@@ -20,6 +20,8 @@
 
 #include "D3D11Window.cpp"
 
+#include "win32_hash_table.hpp"
+
 ID3D11VertexShader *vertexShader;
 ID3D11InputLayout *inputLayout;
 ID3D11PixelShader *pixelShader;
@@ -43,11 +45,14 @@ struct mesh_buffers
 {
     ID3D11Buffer *vertexBuffer;
     ID3D11Buffer *indexBuffer;
-    ID3D11ShaderResourceView *textureShaderResourceView;
+    
+    unsigned int textureIndex;
     unsigned int indexCount;
 };
 
 win32_expandable_list<mesh_buffers> mainModel;
+win32_expandable_list<ID3D11ShaderResourceView*> textureViews;
+win32_expandable_list<key_value_pair> texturePaths;
 unsigned int numNullTextures = 0;
 unsigned int numLoadedTextures = 0;
 
@@ -274,8 +279,14 @@ mesh_buffers CreateVertexIndexBufferPair(VertexPositionUVNormal *vertices,
 
     hr = device->CreateBuffer(&indexDesc, &indexData, &result.indexBuffer);
     // TODO: hresult error checking
+    
+    key_value_pair* kvp = GetValueFromKeyLinear(texturePaths, path);
+    if (kvp == NULL) {
+        result.textureIndex = 0;        
+    } else {
+        result.textureIndex = kvp->value;
+    }
 
-    result.textureShaderResourceView = CreateTextureForShader(path);
 
     return (result);
 }
@@ -326,6 +337,8 @@ void CreateDeviceDependentResources()
     auto scene = imp.ReadFile("models/Sponza-master/sponza.obj", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenUVCoords | aiProcess_GenNormals);
 
     mainModel.Init();
+    textureViews.Init();
+    textureViews.Add(CreateTextureForShader()); //adding the null texture as index 0
     for (unsigned int j = 0; j < scene->mNumMeshes; ++j)
     {
         auto mesh = scene->mMeshes[j];
@@ -376,6 +389,15 @@ void CreateDeviceDependentResources()
                 aiString str;
                 mat->GetTexture(type, i, &str);
                 wsprintfA(path, "models/Sponza-master/%s", str.C_Str());
+                key_value_pair* kvp = GetValueFromKeyLinear(texturePaths, path);
+                if (kvp == NULL) { 
+                    textureViews.Add(CreateTextureForShader(path));
+
+                    key_value_pair newKvp = {};
+                    newKvp.value = textureViews.numElements-1;
+                    strcpy(newKvp.key, path);
+                    texturePaths.Add(newKvp);                    
+                }                
             }
         }
 

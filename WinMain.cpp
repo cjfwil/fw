@@ -202,7 +202,7 @@ void Render()
         context->VSSetConstantBuffers(0, 1, &constantBuffer);
         // Set up the pixel shader stage.
         context->PSSetShader(pixelShader, nullptr, 0);
-        context->PSSetShaderResources(0u, 1u, &vi.textureShaderResourceView);
+        context->PSSetShaderResources(0u, 1u, &textureViews.data[vi.textureIndex]);
         context->PSSetSamplers(0, 1, &samplerState);
         // Calling Draw tells Direct3D to start sending commands to the graphics
         context->DrawIndexed(vi.indexCount, 0, 0);
@@ -263,7 +263,7 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                         StartImgui();
                         Render();
                         EndImgui();
-                        d3d11_window.swapChain->Present(0, 0);
+                        d3d11_window.swapChain->Present(1, 0);
                     }
                 }
             }

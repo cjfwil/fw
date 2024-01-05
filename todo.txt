@@ -14,7 +14,9 @@ x imgui
 
 - infinite view matrix
 
-- dont reload duplicate textures <<- implement linked list for this
+- dont reload duplicate textures <<- implement hash table for this
+
+- load and represent materials 
 
 - why is there a null texture in sponza?
 - also there is no top geometery to the south door frame? Is that an issue with model or my code?

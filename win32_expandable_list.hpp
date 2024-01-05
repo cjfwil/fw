@@ -15,6 +15,7 @@ struct win32_expandable_list
 private:
     DWORD pageSize;
     SIZE_T currentSize;
+    BOOL isInitialised = FALSE;
 
 public:
     SIZE_T numElements;
@@ -43,6 +44,7 @@ public:
             CalcAvailableElements();
             numElements = 0;
             size = 0;
+            isInitialised = TRUE;
         }
         else
         {
@@ -77,6 +79,8 @@ public:
 
     void Add(T element)
     {
+        if (!isInitialised)
+            Init();
         if (numElements >= availableElements)
         {
             Expand(1);
