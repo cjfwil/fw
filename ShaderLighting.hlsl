@@ -56,6 +56,6 @@ PS_OUTPUT ps_main(PS_INPUT In)
     float3 outClr = diffuse.xyz * ambient;
     outClr += saturate(dot(dir, In.Normal.xyz) * diffuseLight * diffuse.xyz);
 
-    Output.RGBColor = float4(outClr, 1.0f);
+    Output.RGBColor = float4(outClr, diffuse.a);
     return Output;
 }

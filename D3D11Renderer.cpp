@@ -28,6 +28,8 @@ ID3D11PixelShader *pixelShader;
 
 ID3D11SamplerState *samplerState;
 
+ID3D11BlendState* blendState;
+
 typedef struct _ModelViewProjectionConstantBuffer
 {
     DirectX::XMFLOAT4X4 world;
@@ -176,7 +178,7 @@ ID3D11ShaderResourceView *CreateTextureForShader(char *path = "")
         {
             for (u_int y = 0; y < height; ++y)
             {
-                ((unsigned int *)clrData)[x + y * width] = ((x ^ y) % 2 == 0) ? (u_int)0x00ff00ff : (u_int)0x00000000;
+                ((unsigned int *)clrData)[x + y * width] = ((x ^ y) % 2 == 0) ? (u_int)0xffff00ff : (u_int)0xff000000;
             }
         }
         numNullTextures++;
@@ -315,6 +317,17 @@ void CreateTexSamplerState()
     {
         // TODO:
     }
+
+    D3D11_BLEND_DESC blendDesc = {};
+    blendDesc.RenderTarget[0].BlendEnable = TRUE;
+    blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
+    blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+    blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    d3d11_window.device->CreateBlendState(&blendDesc, &blendState);
 }
 
 void CreateDeviceDependentResources()

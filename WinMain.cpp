@@ -185,6 +185,7 @@ void Render()
     context->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
     // Set the render target.
     context->OMSetRenderTargets(1, &renderTarget, depthStencil);
+    //context->OMSetBlendState(blendState, NULL, 0xffffffff);
 
     for (unsigned int i = 0; i < mainModel.numElements; ++i)
     {
@@ -263,7 +264,7 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                         StartImgui();
                         Render();
                         EndImgui();
-                        d3d11_window.swapChain->Present(1, 0);
+                        d3d11_window.swapChain->Present(0, 0);
                     }
                 }
             }
