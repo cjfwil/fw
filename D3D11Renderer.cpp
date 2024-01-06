@@ -405,7 +405,8 @@ void CreateDeviceDependentResources()
             for (unsigned int i = 0; i < mesh->mNumVertices; i++)
             {
                 // float scale = 0.01f;
-                float scale = 0.2f;
+                float scale = 0.08f;
+                if (k == 3) scale = 0.01f;
                 VertexPositionUVNormal v = {};
                 v.pos.x = mesh->mVertices[i].x * scale;
                 v.pos.y = mesh->mVertices[i].y * scale;
