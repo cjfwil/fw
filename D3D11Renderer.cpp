@@ -21,6 +21,7 @@
 #include "D3D11Window.cpp"
 
 #include "win32_hash_table.hpp"
+#include "file_navigation.h"
 
 ID3D11VertexShader *vertexShader;
 ID3D11InputLayout *inputLayout;
@@ -37,7 +38,7 @@ typedef struct _ModelViewProjectionConstantBuffer
 {
     DirectX::XMFLOAT4X4 world;
     DirectX::XMFLOAT4X4 view;
-    DirectX::XMFLOAT4X4 projection;
+    DirectX::XMFLOAT4X4 projection;    
 } ModelViewProjectionConstantBuffer;
 static_assert((sizeof(ModelViewProjectionConstantBuffer) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
 
@@ -373,8 +374,16 @@ void CreateDeviceDependentResources()
     };
     CreateShaderPair("CubeVertexShaderLighting.cso", "CubePixelShaderLighting.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
 
+    win32_expandable_list<path_string> pathList;
+    build_path_list("models", ".obj", &pathList);
+
     // init assimp
     Assimp::Importer imp;
+
+    for (int k = 0; k < pathList.numElements; ++k) {
+
+    }
+
     auto scene = imp.ReadFile("models/Sponza-master/sponza.obj", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenUVCoords | aiProcess_GenNormals);
 
     mainModel.Init();        
@@ -435,7 +444,7 @@ void CreateDeviceDependentResources()
 
                     key_value_pair newKvp = {};
                     newKvp.value = textures.numElements-1;
-                    strcpy(newKvp.key, path);
+                    strcpy(newKvp.key, path);                    
                     texturePaths.Add(newKvp);                    
                 }                
             }

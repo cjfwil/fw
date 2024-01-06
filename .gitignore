@@ -4,6 +4,7 @@
 *.pdb
 *.obj
 !models/*.obj
+!models/**/*.obj
 *.cso
 *.lib
 

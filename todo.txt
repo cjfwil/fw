@@ -1,4 +1,5 @@
 - phong blinn lighting, normal and specular maps
+- figure a way to use world matrix instead of adding a view pos vector
 
 x Mipmapping for textures
 - skybox

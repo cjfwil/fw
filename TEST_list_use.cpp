@@ -1,18 +1,21 @@
 #pragma warning(push, 0)
 #include "win32_expandable_list.hpp"
+#include "win32_hash_table.hpp"
+
+#include "file_navigation.h"
 
 int main(void)
 {
-    win32_expandable_list<int> el;
-    el.Init();
-    el.Add(0xffffffff);
-    
+    const char *path = "models";
 
-
-    el.Expand(1);    
+    hash_table ht;
     
-    for (int i = 0; i < el.numElements; ++i) {
-        el.data[i] = 1;        
+    win32_expandable_list<path_string> pathList;
+    build_path_list(path, ".obj", &pathList); 
+
+    for (int i = 0; i < pathList.numElements; ++i) {
+        OutputDebugStringA(pathList.data[i].path);
+        OutputDebugStringA("\n");
     }
 }
 #pragma warning(pop)

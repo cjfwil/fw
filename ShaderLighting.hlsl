@@ -2,7 +2,7 @@ cbuffer ModelViewProjectionConstantBuffer : register(b0)
 {
     matrix mWorld;     // world matrix for object
     matrix View;       // view matrix
-    matrix Projection; // projection matrix
+    matrix Projection; // projection matrix    
 };
 
 struct VS_INPUT

@@ -43,7 +43,7 @@ void StartImgui()
 
     ImGui::Begin("Info");
     ImGui::Text("%.3f ms", 1000.0f / ImGui::GetIO().Framerate);
-    ImGui::Text("%d meshes", mainModel.numElements);
+    ImGui::Text("%d meshes/draw calls", mainModel.numElements);
     ImGui::Text("%d loaded textures", numLoadedTextures);
     ImGui::Text("%d null textures", numNullTextures);
     ImGui::End();
@@ -162,7 +162,7 @@ void Update()
             DirectX::XMMatrixLookAtRH(
                 eye,
                 at,
-                up)));
+                up)));    
 
     // Rotate the cube 1 degree per frame.
     // DirectX::XMStoreFloat4x4(

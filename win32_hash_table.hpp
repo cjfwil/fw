@@ -6,10 +6,12 @@
 struct key_value_pair
 {
     unsigned int value;
-    char key[256] = {};
+    char key[MAX_PATH] = {};
 };
 
-key_value_pair* GetValueFromKeyLinear(win32_expandable_list<key_value_pair> hashTable, char* key)
+typedef win32_expandable_list<key_value_pair> hash_table;
+
+key_value_pair* GetValueFromKeyLinear(hash_table hashTable, char* key)
 {    
     for (int i = 0; i < hashTable.numElements; ++i) {
         key_value_pair kvp = hashTable.data[i];

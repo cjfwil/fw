@@ -6,7 +6,7 @@
             "command": "cl.exe",
             "args": [
                 "/Zi",
-                "-Wall",
+                //"-Wall",
                 "/EHsc",
                 "/nologo",  
                 "/I", "..\\..\\Program Files\\Assimp\\include",              

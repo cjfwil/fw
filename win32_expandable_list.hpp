@@ -33,25 +33,28 @@ public:
     // todo allow for intial reserve size to be specified
     void Init()
     {
-        SYSTEM_INFO sysInfo;
-        GetSystemInfo(&sysInfo);
-        pageSize = sysInfo.dwPageSize;
+        if (!isInitialised)
+        {
+            SYSTEM_INFO sysInfo;
+            GetSystemInfo(&sysInfo);
+            pageSize = sysInfo.dwPageSize;
 
-        data = (T *)VirtualAlloc(NULL, pageSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-        if (data)
-        {
-            currentSize = pageSize;
-            CalcAvailableElements();
-            numElements = 0;
-            size = 0;
-            isInitialised = TRUE;
-        }
-        else
-        {
-            DWORD err = GetLastError();
-            char buff[1024] = {};
-            wsprintfA(buff, "WIN32 ERROR: %d", err);
-            OutputDebugStringA(buff);
+            data = (T *)VirtualAlloc(NULL, pageSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+            if (data)
+            {
+                currentSize = pageSize;
+                CalcAvailableElements();
+                numElements = 0;
+                size = 0;
+                isInitialised = TRUE;
+            }
+            else
+            {
+                DWORD err = GetLastError();
+                char buff[1024] = {};
+                wsprintfA(buff, "WIN32 ERROR: %d", err);
+                OutputDebugStringA(buff);
+            }
         }
     }
 
@@ -81,6 +84,10 @@ public:
     {
         if (!isInitialised)
             Init();
+        if (sizeof(T) > currentSize)
+        {
+            Expand(sizeof(T) / pageSize);
+        }
         if (numElements >= availableElements)
         {
             Expand(1);
