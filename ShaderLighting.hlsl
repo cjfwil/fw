@@ -60,7 +60,7 @@ PS_OUTPUT ps_main(PS_INPUT In)
     //float3 specColour = specularSample.xyz;
     //float specPower = 1.0f/specularSample.a;
 
-    float3 specColour = float3(1.0f, 1.0f, 1.0f);
+    //float3 specColour = float3(1.0f, 1.0f, 1.0f);
     float specPower = 30.0f;
     //clip(diffuseSample.a < 0.1f ? -1 : 1); //alpha test
 
@@ -71,8 +71,8 @@ PS_OUTPUT ps_main(PS_INPUT In)
     float3 dirToL = vToL / distToL;
 
     float attConst = 1.0f;
-    float attLin = 0.045f;
-    float attQuad = 0.0075f;
+    float attLin = 0.22f;
+    float attQuad = 0.2f;
 
     float att = attConst + attLin * distToL + attQuad * (distToL * distToL);
 
@@ -84,15 +84,15 @@ PS_OUTPUT ps_main(PS_INPUT In)
     float diffuseIntensity = 1.0f;
     // float3 diffuse = diffuseSample.xyz * diffuseIntensity * att * max(0.0f, dot(dirToL, In.Normal.xyz));
     float3 diffuse = diffuseIntensity * 1.0f/att * max(0.0f, dot(dirToL, In.Normal.xyz));
-
-    // float specularIntensity = 0.6f;
-    float3 specularIntensity = specColour;
+    
+    float specularIntensity = 0.6f;
     float3 w = In.Normal.xyz * dot(vToL, In.Normal.xyz);
     float3 r = w * 2.0f - vToL;
-    float3 specular = 1.0f/att * (diffuseSample.xyz * diffuseIntensity) * specularIntensity * pow(max(0.0f, dot(normalize(-r), normalize(In.cameraPos.xyz))), specPower);
+    float3 specular = 1.0f/att * (diffuseIntensity) * specularIntensity * pow(max(0.0f, dot(normalize(-r), normalize(In.cameraPos.xyz))), specPower);
 
     float3 outClr = saturate(diffuse + ambient + specular);
 
+    //diffuseSample.xyz = float3(0.6f, 0.6f, 0.6f);
     Output.RGBColor = float4(outClr * diffuseSample.xyz, 1.0f);
     return Output;
 }
