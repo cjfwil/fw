@@ -43,12 +43,14 @@ void StartImgui()
 
     ImGui::Begin("Info");
     ImGui::Text("%.3f ms", 1000.0f / ImGui::GetIO().Framerate);
+    int drawCalls = 0;
     for (int i = 0; i < modelList.numElements; ++i)
     {
         model m = modelList.data[i];
         if (m.enabled)
-            ImGui::Text("%d meshes/draw calls", m.meshList.numElements);
+            drawCalls += m.meshList.numElements;
     }
+    ImGui::Text("%d meshes/draw calls", drawCalls);
     ImGui::Text("%d loaded textures", numLoadedTextures);
     ImGui::Text("%d null textures", numNullTextures);
     ImGui::End();
@@ -161,6 +163,8 @@ void Update()
     right = DirectX::XMVector3Normalize(right);
 
     float moveSpeed = 1 / 60.0f;
+    if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
+        moveSpeed *= 20;
     DirectX::XMVECTOR dir = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
     if (GetAsyncKeyState('W') & 0x8000)
         dir = DirectX::XMVectorAdd(dir, viewDir);
@@ -246,7 +250,12 @@ void Render()
 
                 // Set up the pixel shader stage.
                 context->PSSetShader(pixelShader, nullptr, 0);
-                context->PSSetShaderResources(0u, 1u, &textures.data[vi.textureIndex].textureView);
+                for (int k = 0; k < ARRAYSIZE(_types); ++k)
+                {
+                    int tindex = vi.textureIndex[k];
+                    texture_info ti = textures.data[tindex];                    
+                    context->PSSetShaderResources(ti.slot, 1u, &ti.textureView);
+                }
                 context->PSSetSamplers(0, 1, &samplerState);
                 // Calling Draw tells Direct3D to start sending commands to the graphics
                 context->DrawIndexed(vi.indexCount, 0, 0);

@@ -47,12 +47,14 @@ unsigned int frameCount;
 
 ID3D11Buffer *constantBuffer;
 
+aiTextureType _types[] = {aiTextureType_DIFFUSE, aiTextureType_SPECULAR};
+
 struct mesh_buffers
 {
     ID3D11Buffer *vertexBuffer;
     ID3D11Buffer *indexBuffer;
 
-    unsigned int textureIndex;
+    unsigned int textureIndex[ARRAYSIZE(_types)];
     unsigned int indexCount;
     bool cullBackface = true;
 };
@@ -60,12 +62,15 @@ struct mesh_buffers
 struct texture_info
 {
     ID3D11ShaderResourceView *textureView;
+    unsigned int slot;
     bool hasAlpha;
+    char path[MAX_PATH] = {};
 };
 
-struct model {
+struct model
+{
     win32_expandable_list<mesh_buffers> meshList;
-    bool enabled = true;
+    bool enabled = false;
 };
 
 win32_expandable_list<model> modelList;
@@ -178,9 +183,13 @@ HRESULT CreateShaderPair(char *vertexShaderPath, char *pixelShaderPath, D3D11_IN
     return (hr);
 }
 
-texture_info CreateTextureForShader(char *path = "")
+texture_info CreateTextureForShader(char *path, aiTextureType type)
 {
     texture_info result = {};
+    if (type == aiTextureType_DIFFUSE)
+        result.slot = 0;
+    else if (type == aiTextureType_SPECULAR)
+        result.slot = 1;
 
     int forcedN = 4;
     unsigned char *clrData = NULL;
@@ -190,6 +199,7 @@ texture_info CreateTextureForShader(char *path = "")
     bool isNullTexture = (path[0] == '\0') ? true : false;
     if (isNullTexture)
     {
+
         // null texture
         width = 64;
         height = 64;
@@ -271,6 +281,7 @@ texture_info CreateTextureForShader(char *path = "")
 
     d3d11_window.context->GenerateMips(textureShaderResourceView);
     result.textureView = textureShaderResourceView;
+    strcpy(result.path, path);
     return (result);
 }
 
@@ -278,8 +289,7 @@ mesh_buffers CreateVertexIndexBufferPair(VertexPositionUVNormal *vertices,
                                          unsigned int verticesSize,
                                          unsigned short *indices,
                                          unsigned int indicesSize,
-                                         UINT indexCount,
-                                         char *path)
+                                         UINT indexCount)
 {
     HRESULT hr = S_OK;
     ID3D11Device *device = d3d11_window.device;
@@ -307,18 +317,6 @@ mesh_buffers CreateVertexIndexBufferPair(VertexPositionUVNormal *vertices,
 
     hr = device->CreateBuffer(&indexDesc, &indexData, &result.indexBuffer);
     // TODO: hresult error checking
-
-    key_value_pair *kvp = GetValueFromKeyLinear(texturePaths, path);
-    if (kvp == NULL)
-    {
-        result.textureIndex = 0;
-    }
-    else
-    {
-        result.textureIndex = kvp->value;
-    }
-
-    result.cullBackface = (textures.data[result.textureIndex].hasAlpha) ? false : true;
 
     return (result);
 }
@@ -382,7 +380,7 @@ void CreateDeviceDependentResources()
          0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
     CreateShaderPair("CubeVertexShaderLighting.cso", "CubePixelShaderLighting.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
-    
+
     build_path_list("models", ".obj", &pathList);
 
     // init assimp
@@ -394,7 +392,8 @@ void CreateDeviceDependentResources()
         auto scene = imp.ReadFile(p.path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenUVCoords | aiProcess_GenNormals);
 
         model m;
-        textures.Add(CreateTextureForShader()); // adding the null texture as index 0
+        textures.Add(CreateTextureForShader("", aiTextureType_DIFFUSE)); // adding the null texture as index 0
+        textures.Add(CreateTextureForShader("", aiTextureType_SPECULAR));
 
         for (unsigned int j = 0; j < scene->mNumMeshes; ++j)
         {
@@ -405,7 +404,8 @@ void CreateDeviceDependentResources()
 
             for (unsigned int i = 0; i < mesh->mNumVertices; i++)
             {
-                float scale = 0.01f;
+                // float scale = 0.01f;
+                float scale = 0.2f;
                 VertexPositionUVNormal v = {};
                 v.pos.x = mesh->mVertices[i].x * scale;
                 v.pos.y = mesh->mVertices[i].y * scale;
@@ -418,6 +418,7 @@ void CreateDeviceDependentResources()
                 }
                 else
                 {
+                    // create own uvs based on vertices?
                     v.uv.x = 0.0f;
                     v.uv.y = 0.0f;
                 }
@@ -440,44 +441,69 @@ void CreateDeviceDependentResources()
                 indices.Add((unsigned short)f.mIndices[1]);
             }
 
-            // materials
-            unsigned int mi = mesh->mMaterialIndex;
-            char path[256] = {};
-            unsigned int texCount = 0;
-            if (mi >= 0)
-            {
-                aiTextureType type = aiTextureType_DIFFUSE;
-                aiMaterial *mat = scene->mMaterials[mi];
-                texCount = mat->GetTextureCount(type);
-                for (int i = 0; i < texCount; i++)
-                {
-                    aiString str;
-                    mat->GetTexture(type, i, &str);
-                    char parentFolder[MAX_PATH] = {};
-                    get_parent_folder(parentFolder, p.path);
-                    wsprintfA(path, "%s/%s", parentFolder, str.C_Str());
-                    key_value_pair *kvp = GetValueFromKeyLinear(texturePaths, path);
-                    if (kvp == NULL)
-                    {
-                        textures.Add(CreateTextureForShader(path));
-
-                        key_value_pair newKvp = {};
-                        newKvp.value = textures.numElements - 1;
-                        strcpy(newKvp.key, path);
-                        texturePaths.Add(newKvp);
-                    }
-                }
-            }
-
-            if (texCount <= 0)
-            {
-                wsprintfA(path, "");
-            }
             mesh_buffers vi = CreateVertexIndexBufferPair(vertices.data,
                                                           (UINT)vertices.size,
                                                           indices.data,
                                                           (UINT)indices.size,
-                                                          (UINT)indices.numElements, path);
+                                                          (UINT)indices.numElements);
+
+            // materials
+            unsigned int mi = mesh->mMaterialIndex;
+            char path[ARRAYSIZE(_types)][256] = {};
+            unsigned int totalTexCount = 0;
+            if (mi >= 0)
+            {
+                for (int tt = 0; tt < ARRAYSIZE(_types); ++tt)
+                {
+                    aiTextureType type = _types[tt];
+                    aiMaterial *mat = scene->mMaterials[mi];
+
+                    unsigned int texCount = mat->GetTextureCount(type);
+                    totalTexCount += texCount;
+                    for (int i = 0; i < texCount; i++)
+                    {
+                        aiString str;
+                        mat->GetTexture(type, i, &str);
+                        char parentFolder[MAX_PATH] = {};
+                        get_parent_folder(parentFolder, p.path);
+                        wsprintfA(path[tt], "%s/%s", parentFolder, str.C_Str());
+                        key_value_pair *kvp = GetValueFromKeyLinear(texturePaths, path[tt]);
+                        if (kvp == NULL)
+                        {
+                            texture_info ti = CreateTextureForShader(path[tt], type);
+                            ti.slot = tt;
+                            textures.Add(ti);
+
+                            key_value_pair newKvp = {};
+                            newKvp.value = textures.numElements - 1;
+                            strcpy(newKvp.key, path[tt]);
+                            texturePaths.Add(newKvp);
+                        }
+                    }
+                }
+            }
+
+            if (totalTexCount <= 0)
+            {
+                for (int i = 0; i < ARRAYSIZE(_types); ++i)
+                    wsprintfA(path[i], "");
+            }
+
+            for (int i = 0; i < ARRAYSIZE(_types); ++i)
+            {
+                key_value_pair *kvp = GetValueFromKeyLinear(texturePaths, path[i]);
+                if (kvp == NULL)
+                {
+                    vi.textureIndex[i] = i;
+                }
+                else
+                {
+                    texture_info ti = textures.data[kvp->value];
+                    vi.textureIndex[ti.slot] = kvp->value;
+                }
+
+                vi.cullBackface = (textures.data[vi.textureIndex[0]].hasAlpha) ? false : true;                
+            }
 
             m.meshList.Add(vi);
         }

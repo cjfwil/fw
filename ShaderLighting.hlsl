@@ -25,6 +25,7 @@ struct PS_OUTPUT
 };
 
 Texture2D tex : register(t0);
+Texture2D spec : register(t1);
 SamplerState smplr : register(s0);
 
 PS_INPUT vs_main(VS_INPUT input) // main is the default function name
@@ -51,7 +52,7 @@ PS_OUTPUT ps_main(PS_INPUT In)
     float3 diffuseLight = float3(1.0f, 1.0f, 1.0f);
 
     float4 diffuse = tex.Sample(smplr, In.uv);
-    clip(diffuse.a < 0.1f ? -1 : 1); //alpha test
+    //clip(diffuse.a < 0.1f ? -1 : 1); //alpha test
 
     // gouraud calculation
     float3 outClr = diffuse.xyz * ambient;
