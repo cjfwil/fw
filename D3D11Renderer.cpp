@@ -63,7 +63,10 @@ struct texture_info
     bool hasAlpha;
 };
 
-typedef win32_expandable_list<mesh_buffers> model;
+struct model {
+    win32_expandable_list<mesh_buffers> meshList;
+    bool enabled = true;
+};
 
 win32_expandable_list<model> modelList;
 win32_expandable_list<path_string> pathList;
@@ -476,7 +479,7 @@ void CreateDeviceDependentResources()
                                                           (UINT)indices.size,
                                                           (UINT)indices.numElements, path);
 
-            m.Add(vi);
+            m.meshList.Add(vi);
         }
         modelList.Add(m);
     }

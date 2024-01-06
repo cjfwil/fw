@@ -46,7 +46,8 @@ void StartImgui()
     for (int i = 0; i < modelList.numElements; ++i)
     {
         model m = modelList.data[i];
-        ImGui::Text("%d meshes/draw calls", m.numElements);
+        if (m.enabled)
+            ImGui::Text("%d meshes/draw calls", m.meshList.numElements);
     }
     ImGui::Text("%d loaded textures", numLoadedTextures);
     ImGui::Text("%d null textures", numNullTextures);
@@ -56,9 +57,19 @@ void StartImgui()
     ImGui::Checkbox("V-Sync", &vsyncOn);
     ImGui::End();
 
-    ImGui::Begin("Path List");
-    for (int i = 0; i < pathList.numElements; ++i) {
+    ImGui::Begin("OBJ file List");
+    for (int i = 0; i < pathList.numElements; ++i)
+    {
         ImGui::Text("%s", pathList.data[i]);
+    }
+    ImGui::End();
+
+    ImGui::Begin("Enable");
+    for (int i = 0; i < modelList.numElements; ++i)
+    {
+        ImGui::PushID(i);
+        ImGui::Checkbox("Visible", &(modelList.data[i].enabled));
+        ImGui::PopID();
     }
     ImGui::End();
 }
@@ -206,37 +217,40 @@ void Render()
     for (int j = 0; j < modelList.numElements; ++j)
     {
         model m = modelList.data[j];
-        for (unsigned int i = 0; i < m.numElements; ++i)
+        if (m.enabled)
         {
-            mesh_buffers vi = m.data[i];
-            // Set up the IA stage by setting the input topology and layout.
-            UINT stride = sizeof(VertexPositionUVNormal);
-            UINT offset = 0;
-            context->IASetVertexBuffers(0, 1, &vi.vertexBuffer, &stride, &offset);
-            context->IASetIndexBuffer(vi.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
-
-            context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-            context->IASetInputLayout(inputLayout);
-            // Set up the vertex shader stage.
-            context->VSSetShader(vertexShader, nullptr, 0);
-            context->VSSetConstantBuffers(0, 1, &constantBuffer);
-
-            // rasteriser stage
-            if (vi.cullBackface)
+            for (unsigned int i = 0; i < m.meshList.numElements; ++i)
             {
-                context->RSSetState(rasterStateBackCull);
-            }
-            else
-            {
-                context->RSSetState(rasterStateNoCull);
-            }
+                mesh_buffers vi = m.meshList.data[i];
+                // Set up the IA stage by setting the input topology and layout.
+                UINT stride = sizeof(VertexPositionUVNormal);
+                UINT offset = 0;
+                context->IASetVertexBuffers(0, 1, &vi.vertexBuffer, &stride, &offset);
+                context->IASetIndexBuffer(vi.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-            // Set up the pixel shader stage.
-            context->PSSetShader(pixelShader, nullptr, 0);
-            context->PSSetShaderResources(0u, 1u, &textures.data[vi.textureIndex].textureView);
-            context->PSSetSamplers(0, 1, &samplerState);
-            // Calling Draw tells Direct3D to start sending commands to the graphics
-            context->DrawIndexed(vi.indexCount, 0, 0);
+                context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+                context->IASetInputLayout(inputLayout);
+                // Set up the vertex shader stage.
+                context->VSSetShader(vertexShader, nullptr, 0);
+                context->VSSetConstantBuffers(0, 1, &constantBuffer);
+
+                // rasteriser stage
+                if (vi.cullBackface)
+                {
+                    context->RSSetState(rasterStateBackCull);
+                }
+                else
+                {
+                    context->RSSetState(rasterStateNoCull);
+                }
+
+                // Set up the pixel shader stage.
+                context->PSSetShader(pixelShader, nullptr, 0);
+                context->PSSetShaderResources(0u, 1u, &textures.data[vi.textureIndex].textureView);
+                context->PSSetSamplers(0, 1, &samplerState);
+                // Calling Draw tells Direct3D to start sending commands to the graphics
+                context->DrawIndexed(vi.indexCount, 0, 0);
+            }
         }
     }
 }
