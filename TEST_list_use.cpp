@@ -12,10 +12,15 @@ int main(void)
     
     win32_expandable_list<path_string> pathList;
     build_path_list(path, ".obj", &pathList); 
+    pathList.Add({"models/Sponza-master/sponza.obj"});
 
     for (int i = 0; i < pathList.numElements; ++i) {
-        OutputDebugStringA(pathList.data[i].path);
+        // OutputDebugStringA(pathList.data[i].path);
+        // OutputDebugStringA("\n");
+        char buf[MAX_PATH];
+        get_parent_folder(buf, pathList.data[i].path);
+        OutputDebugStringA(buf);
         OutputDebugStringA("\n");
-    }
+    }    
 }
 #pragma warning(pop)

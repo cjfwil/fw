@@ -13,6 +13,18 @@ char* get_extension(char* path)
     return(&path[index+1]);
 }
 
+void get_parent_folder(char* output, const char* path)
+{
+    int size = 0;
+    for (int i = 0; path[i] != '\0'; ++i) {
+        size = i;
+    }
+    strcpy(output, path);
+    for (int i = size-1; (path[i] != '\\') == (path[i] != '/'); --i) {
+        output[i] = '\0';
+    }
+}
+
 struct path_string {
     char path[MAX_PATH];
 };

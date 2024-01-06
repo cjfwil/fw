@@ -43,13 +43,23 @@ void StartImgui()
 
     ImGui::Begin("Info");
     ImGui::Text("%.3f ms", 1000.0f / ImGui::GetIO().Framerate);
-    ImGui::Text("%d meshes/draw calls", mainModel.numElements);
+    for (int i = 0; i < modelList.numElements; ++i)
+    {
+        model m = modelList.data[i];
+        ImGui::Text("%d meshes/draw calls", m.numElements);
+    }
     ImGui::Text("%d loaded textures", numLoadedTextures);
     ImGui::Text("%d null textures", numNullTextures);
     ImGui::End();
 
     ImGui::Begin("Settings");
     ImGui::Checkbox("V-Sync", &vsyncOn);
+    ImGui::End();
+
+    ImGui::Begin("Path List");
+    for (int i = 0; i < pathList.numElements; ++i) {
+        ImGui::Text("%s", pathList.data[i]);
+    }
     ImGui::End();
 }
 
@@ -162,7 +172,7 @@ void Update()
             DirectX::XMMatrixLookAtRH(
                 eye,
                 at,
-                up)));    
+                up)));
 
     // Rotate the cube 1 degree per frame.
     // DirectX::XMStoreFloat4x4(
@@ -193,37 +203,41 @@ void Render()
     context->OMSetRenderTargets(1, &renderTarget, depthStencil);
     // context->OMSetBlendState(blendState, NULL, 0xffffffff);
 
-    for (unsigned int i = 0; i < mainModel.numElements; ++i)
+    for (int j = 0; j < modelList.numElements; ++j)
     {
-        mesh_buffers vi = mainModel.data[i];
-        // Set up the IA stage by setting the input topology and layout.
-        UINT stride = sizeof(VertexPositionUVNormal);
-        UINT offset = 0;
-        context->IASetVertexBuffers(0, 1, &vi.vertexBuffer, &stride, &offset);
-        context->IASetIndexBuffer(vi.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
-
-        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        context->IASetInputLayout(inputLayout);
-        // Set up the vertex shader stage.
-        context->VSSetShader(vertexShader, nullptr, 0);
-        context->VSSetConstantBuffers(0, 1, &constantBuffer);
-
-        // rasteriser stage
-        if (vi.cullBackface)
+        model m = modelList.data[j];
+        for (unsigned int i = 0; i < m.numElements; ++i)
         {
-            context->RSSetState(rasterStateBackCull);
-        }
-        else
-        {
-            context->RSSetState(rasterStateNoCull);
-        }
+            mesh_buffers vi = m.data[i];
+            // Set up the IA stage by setting the input topology and layout.
+            UINT stride = sizeof(VertexPositionUVNormal);
+            UINT offset = 0;
+            context->IASetVertexBuffers(0, 1, &vi.vertexBuffer, &stride, &offset);
+            context->IASetIndexBuffer(vi.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-        // Set up the pixel shader stage.
-        context->PSSetShader(pixelShader, nullptr, 0);
-        context->PSSetShaderResources(0u, 1u, &textures.data[vi.textureIndex].textureView);
-        context->PSSetSamplers(0, 1, &samplerState);
-        // Calling Draw tells Direct3D to start sending commands to the graphics
-        context->DrawIndexed(vi.indexCount, 0, 0);
+            context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            context->IASetInputLayout(inputLayout);
+            // Set up the vertex shader stage.
+            context->VSSetShader(vertexShader, nullptr, 0);
+            context->VSSetConstantBuffers(0, 1, &constantBuffer);
+
+            // rasteriser stage
+            if (vi.cullBackface)
+            {
+                context->RSSetState(rasterStateBackCull);
+            }
+            else
+            {
+                context->RSSetState(rasterStateNoCull);
+            }
+
+            // Set up the pixel shader stage.
+            context->PSSetShader(pixelShader, nullptr, 0);
+            context->PSSetShaderResources(0u, 1u, &textures.data[vi.textureIndex].textureView);
+            context->PSSetSamplers(0, 1, &samplerState);
+            // Calling Draw tells Direct3D to start sending commands to the graphics
+            context->DrawIndexed(vi.indexCount, 0, 0);
+        }
     }
 }
 

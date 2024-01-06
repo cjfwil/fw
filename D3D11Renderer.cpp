@@ -29,16 +29,16 @@ ID3D11PixelShader *pixelShader;
 
 ID3D11SamplerState *samplerState;
 
-ID3D11BlendState* blendState;
+ID3D11BlendState *blendState;
 
-ID3D11RasterizerState* rasterStateNoCull;
-ID3D11RasterizerState* rasterStateBackCull;
+ID3D11RasterizerState *rasterStateNoCull;
+ID3D11RasterizerState *rasterStateBackCull;
 
 typedef struct _ModelViewProjectionConstantBuffer
 {
     DirectX::XMFLOAT4X4 world;
     DirectX::XMFLOAT4X4 view;
-    DirectX::XMFLOAT4X4 projection;    
+    DirectX::XMFLOAT4X4 projection;
 } ModelViewProjectionConstantBuffer;
 static_assert((sizeof(ModelViewProjectionConstantBuffer) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
 
@@ -51,7 +51,7 @@ struct mesh_buffers
 {
     ID3D11Buffer *vertexBuffer;
     ID3D11Buffer *indexBuffer;
-    
+
     unsigned int textureIndex;
     unsigned int indexCount;
     bool cullBackface = true;
@@ -59,11 +59,15 @@ struct mesh_buffers
 
 struct texture_info
 {
-    ID3D11ShaderResourceView* textureView;
+    ID3D11ShaderResourceView *textureView;
     bool hasAlpha;
 };
 
-win32_expandable_list<mesh_buffers> mainModel;
+typedef win32_expandable_list<mesh_buffers> model;
+
+win32_expandable_list<model> modelList;
+win32_expandable_list<path_string> pathList;
+
 win32_expandable_list<texture_info> textures;
 win32_expandable_list<key_value_pair> texturePaths;
 unsigned int numNullTextures = 0;
@@ -179,7 +183,7 @@ texture_info CreateTextureForShader(char *path = "")
     unsigned char *clrData = NULL;
     unsigned int width;
     unsigned int height;
-    //todo: maybe define isNullTexture based on whether stbi_load succeeds
+    // todo: maybe define isNullTexture based on whether stbi_load succeeds
     bool isNullTexture = (path[0] == '\0') ? true : false;
     if (isNullTexture)
     {
@@ -198,14 +202,15 @@ texture_info CreateTextureForShader(char *path = "")
         result.hasAlpha = true;
     }
     else
-    {        
+    {
         int x, y, n;
         stbi_set_flip_vertically_on_load(1);
         clrData = stbi_load(path, &x, &y, &n, forcedN);
         width = x;
         height = y;
         numLoadedTextures++;
-        if (n == 4) {
+        if (n == 4)
+        {
             result.hasAlpha = true;
         }
     }
@@ -252,7 +257,7 @@ texture_info CreateTextureForShader(char *path = "")
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MostDetailedMip = 0;
     srvDesc.Texture2D.MipLevels = UINT_MAX;
-    
+
     ID3D11ShaderResourceView *textureShaderResourceView;
     hr = d3d11_window.device->CreateShaderResourceView(texture, &srvDesc, &textureShaderResourceView);
 
@@ -299,11 +304,14 @@ mesh_buffers CreateVertexIndexBufferPair(VertexPositionUVNormal *vertices,
 
     hr = device->CreateBuffer(&indexDesc, &indexData, &result.indexBuffer);
     // TODO: hresult error checking
-    
-    key_value_pair* kvp = GetValueFromKeyLinear(texturePaths, path);
-    if (kvp == NULL) {
-        result.textureIndex = 0;        
-    } else {
+
+    key_value_pair *kvp = GetValueFromKeyLinear(texturePaths, path);
+    if (kvp == NULL)
+    {
+        result.textureIndex = 0;
+    }
+    else
+    {
         result.textureIndex = kvp->value;
     }
 
@@ -349,14 +357,12 @@ void CreateTexSamplerState()
     blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
     d3d11_window.device->CreateBlendState(&blendDesc, &blendState);
 
-    
     D3D11_RASTERIZER_DESC rasterDesc = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT{});
     rasterDesc.CullMode = D3D11_CULL_NONE;
     d3d11_window.device->CreateRasterizerState(&rasterDesc, &rasterStateNoCull);
 
     rasterDesc.CullMode = D3D11_CULL_BACK;
     d3d11_window.device->CreateRasterizerState(&rasterDesc, &rasterStateBackCull);
-
 }
 
 void CreateDeviceDependentResources()
@@ -373,94 +379,106 @@ void CreateDeviceDependentResources()
          0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
     CreateShaderPair("CubeVertexShaderLighting.cso", "CubePixelShaderLighting.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
-
-    win32_expandable_list<path_string> pathList;
+    
     build_path_list("models", ".obj", &pathList);
 
     // init assimp
     Assimp::Importer imp;
 
-    for (int k = 0; k < pathList.numElements; ++k) {
-
-    }
-
-    auto scene = imp.ReadFile("models/Sponza-master/sponza.obj", aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenUVCoords | aiProcess_GenNormals);
-
-    mainModel.Init();        
-    textures.Add(CreateTextureForShader()); //adding the null texture as index 0
-    for (unsigned int j = 0; j < scene->mNumMeshes; ++j)
+    for (int k = 0; k < pathList.numElements; ++k)
     {
-        auto mesh = scene->mMeshes[j];
+        path_string p = pathList.data[k];
+        auto scene = imp.ReadFile(p.path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenUVCoords | aiProcess_GenNormals);
 
-        win32_expandable_list<VertexPositionUVNormal> vertices;
-        vertices.Init();
+        model m;
+        textures.Add(CreateTextureForShader()); // adding the null texture as index 0
 
-        for (unsigned int i = 0; i < mesh->mNumVertices; i++)
+        for (unsigned int j = 0; j < scene->mNumMeshes; ++j)
         {
-            float scale = 0.01f;
-            VertexPositionUVNormal v = {};
-            v.pos.x = mesh->mVertices[i].x * scale;
-            v.pos.y = mesh->mVertices[i].y * scale;
-            v.pos.z = mesh->mVertices[i].z * scale;
+            auto mesh = scene->mMeshes[j];
 
-            v.uv.x = (mesh->mTextureCoords[0])[i].x;
-            v.uv.y = (mesh->mTextureCoords[0])[i].y;
+            win32_expandable_list<VertexPositionUVNormal> vertices;
+            vertices.Init();
 
-            v.normal.x = mesh->mNormals[i].x;
-            v.normal.y = mesh->mNormals[i].y;
-            v.normal.z = mesh->mNormals[i].z;
-
-            vertices.Add(v);
-        }
-
-        win32_expandable_list<unsigned short> indices;
-        indices.Init();
-        for (unsigned int i = 0; i < mesh->mNumFaces; i++)
-        {
-            const auto &f = mesh->mFaces[i];
-            assert(f.mNumIndices == 3);
-            indices.Add((unsigned short)f.mIndices[0]);
-            indices.Add((unsigned short)f.mIndices[2]);
-            indices.Add((unsigned short)f.mIndices[1]);
-        }
-
-        // materials
-        unsigned int mi = mesh->mMaterialIndex;
-        char path[256] = {};
-        unsigned int texCount = 0;
-        if (mi >= 0)
-        {
-            aiTextureType type = aiTextureType_DIFFUSE;
-            aiMaterial *mat = scene->mMaterials[mi];
-            texCount = mat->GetTextureCount(type);
-            for (int i = 0; i < texCount; i++)
+            for (unsigned int i = 0; i < mesh->mNumVertices; i++)
             {
-                aiString str;
-                mat->GetTexture(type, i, &str);
-                wsprintfA(path, "models/Sponza-master/%s", str.C_Str());
-                key_value_pair* kvp = GetValueFromKeyLinear(texturePaths, path);
-                if (kvp == NULL) { 
-                    textures.Add(CreateTextureForShader(path));
+                float scale = 0.01f;
+                VertexPositionUVNormal v = {};
+                v.pos.x = mesh->mVertices[i].x * scale;
+                v.pos.y = mesh->mVertices[i].y * scale;
+                v.pos.z = mesh->mVertices[i].z * scale;
 
-                    key_value_pair newKvp = {};
-                    newKvp.value = textures.numElements-1;
-                    strcpy(newKvp.key, path);                    
-                    texturePaths.Add(newKvp);                    
-                }                
+                if (mesh->mTextureCoords[0] != NULL)
+                {
+                    v.uv.x = (mesh->mTextureCoords[0])[i].x;
+                    v.uv.y = (mesh->mTextureCoords[0])[i].y;
+                }
+                else
+                {
+                    v.uv.x = 0.0f;
+                    v.uv.y = 0.0f;
+                }
+
+                v.normal.x = mesh->mNormals[i].x;
+                v.normal.y = mesh->mNormals[i].y;
+                v.normal.z = mesh->mNormals[i].z;
+
+                vertices.Add(v);
             }
-        }
 
-        if (texCount <= 0)
-        {
-            wsprintfA(path, "");
+            win32_expandable_list<unsigned short> indices;
+            indices.Init();
+            for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+            {
+                const auto &f = mesh->mFaces[i];
+                assert(f.mNumIndices == 3);
+                indices.Add((unsigned short)f.mIndices[0]);
+                indices.Add((unsigned short)f.mIndices[2]);
+                indices.Add((unsigned short)f.mIndices[1]);
+            }
+
+            // materials
+            unsigned int mi = mesh->mMaterialIndex;
+            char path[256] = {};
+            unsigned int texCount = 0;
+            if (mi >= 0)
+            {
+                aiTextureType type = aiTextureType_DIFFUSE;
+                aiMaterial *mat = scene->mMaterials[mi];
+                texCount = mat->GetTextureCount(type);
+                for (int i = 0; i < texCount; i++)
+                {
+                    aiString str;
+                    mat->GetTexture(type, i, &str);
+                    char parentFolder[MAX_PATH] = {};
+                    get_parent_folder(parentFolder, p.path);
+                    wsprintfA(path, "%s/%s", parentFolder, str.C_Str());
+                    key_value_pair *kvp = GetValueFromKeyLinear(texturePaths, path);
+                    if (kvp == NULL)
+                    {
+                        textures.Add(CreateTextureForShader(path));
+
+                        key_value_pair newKvp = {};
+                        newKvp.value = textures.numElements - 1;
+                        strcpy(newKvp.key, path);
+                        texturePaths.Add(newKvp);
+                    }
+                }
+            }
+
+            if (texCount <= 0)
+            {
+                wsprintfA(path, "");
+            }
+            mesh_buffers vi = CreateVertexIndexBufferPair(vertices.data,
+                                                          (UINT)vertices.size,
+                                                          indices.data,
+                                                          (UINT)indices.size,
+                                                          (UINT)indices.numElements, path);
+
+            m.Add(vi);
         }
-        mesh_buffers vi = CreateVertexIndexBufferPair(vertices.data,
-                                                      (UINT)vertices.size,
-                                                      indices.data,
-                                                      (UINT)indices.size,
-                                                      (UINT)indices.numElements, path);
-        
-        mainModel.Add(vi);
+        modelList.Add(m);
     }
 }
 
