@@ -17,7 +17,7 @@ struct PS_INPUT
     float4 Position : SV_POSITION; // interpolated vertex position (system
     float2 uv : TEXCOORD;
     float4 Normal : NORMAL;
-    float4 worldPos : POSITION;
+    float4 cameraPos : POSITION;
 };
 
 struct PS_OUTPUT
@@ -33,14 +33,15 @@ PS_INPUT vs_main(VS_INPUT input) // main is the default function name
 {
     PS_INPUT Output;
     float4 pos = float4(input.vPos, 1.0f);
-    Output.worldPos = mul(pos, mWorld);
     // Transform the position from object space to homogeneous projection space
     pos = mul(pos, mWorld);
     pos = mul(pos, View);
+    Output.cameraPos = pos;
     pos = mul(pos, Projection);
     Output.Position = pos;
     float4 n = float4(input.vNormal, 0.0f);
     Output.Normal = mul(n, mWorld);
+    Output.Normal = mul(Output.Normal, View);
     Output.uv = input.uv;
     
     return Output;
@@ -56,12 +57,16 @@ PS_OUTPUT ps_main(PS_INPUT In)
 
     float4 diffuseSample = tex.Sample(smplr, In.uv);
     float4 specularSample = spec.Sample(smplr, In.uv);
-    float3 specColour = specularSample.xyz;
-    float3 specPower = specularSample.a;
+    //float3 specColour = specularSample.xyz;
+    //float specPower = 1.0f/specularSample.a;
+
+    float3 specColour = float3(1.0f, 1.0f, 1.0f);
+    float specPower = 30.0f;
     //clip(diffuseSample.a < 0.1f ? -1 : 1); //alpha test
 
-    float3 lightPos = float3(2.0f, 2.0f, 2.0f);
-    float3 vToL = lightPos - In.worldPos.xyz;
+    float3 lightPos = float3(0.0f, 0.0f, 0.0f);
+    lightPos = mul(float4(lightPos, 1.0f), View).xyz;
+    float3 vToL = lightPos - In.cameraPos.xyz;
     float distToL = length(vToL);
     float3 dirToL = vToL / distToL;
 
@@ -78,9 +83,16 @@ PS_OUTPUT ps_main(PS_INPUT In)
 
     float diffuseIntensity = 1.0f;
     // float3 diffuse = diffuseSample.xyz * diffuseIntensity * att * max(0.0f, dot(dirToL, In.Normal.xyz));
-    float3 diffuse = diffuseSample.xyz * diffuseIntensity * 1.0f/att * max(0.0f, dot(dirToL, In.Normal.xyz));
-    float3 outClr = saturate(diffuse + ambient);
+    float3 diffuse = diffuseIntensity * 1.0f/att * max(0.0f, dot(dirToL, In.Normal.xyz));
 
-    Output.RGBColor = float4(outClr, 1.0f);
+    // float specularIntensity = 0.6f;
+    float3 specularIntensity = specColour;
+    float3 w = In.Normal.xyz * dot(vToL, In.Normal.xyz);
+    float3 r = w * 2.0f - vToL;
+    float3 specular = 1.0f/att * (diffuseSample.xyz * diffuseIntensity) * specularIntensity * pow(max(0.0f, dot(normalize(-r), normalize(In.cameraPos.xyz))), specPower);
+
+    float3 outClr = saturate(diffuse + ambient + specular);
+
+    Output.RGBColor = float4(outClr * diffuseSample.xyz, 1.0f);
     return Output;
 }

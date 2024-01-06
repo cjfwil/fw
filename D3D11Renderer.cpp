@@ -208,7 +208,9 @@ texture_info CreateTextureForShader(char *path, aiTextureType type)
         {
             for (u_int y = 0; y < height; ++y)
             {
-                ((unsigned int *)clrData)[x + y * width] = ((x ^ y) % 2 == 0) ? (u_int)0xffff00ff : (u_int)0xff000000;
+                unsigned int pixelColour = ((x ^ y) % 2 == 0) ? (u_int)0xffff00ff : (u_int)0xff000000;
+                if (result.slot != 0) pixelColour = 0xffffffff; //non-diffuse slot
+                ((unsigned int *)clrData)[x + y * width] = pixelColour;
             }
         }
         numNullTextures++;
