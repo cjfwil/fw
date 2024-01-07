@@ -192,8 +192,10 @@ void Update()
 
     at = DirectX::XMVectorAdd(at, dir);
 
+    DirectX::XMStoreFloat4(&cameraConstantBufferData.cameraPos, eye);
+
     DirectX::XMStoreFloat4x4(
-        &constantBufferData.view,
+        &mvpConstantBufferData.view,
         DirectX::XMMatrixTranspose(
             DirectX::XMMatrixLookAtRH(
                 eye,
@@ -202,7 +204,7 @@ void Update()
 
     // Rotate the cube 1 degree per frame.
     // DirectX::XMStoreFloat4x4(
-    //     &constantBufferData.world,
+    //     &mvpConstantBufferData.world,
     //     DirectX::XMMatrixTranspose(
     //         DirectX::XMMatrixRotationY(
     //             DirectX::XMConvertToRadians(
@@ -220,7 +222,8 @@ void Render()
     ID3D11DeviceContext *context = d3d11_window.context;
     ID3D11RenderTargetView *renderTarget = d3d11_window.renderTargetView;
     ID3D11DepthStencilView *depthStencil = d3d11_window.depthStencilView;
-    context->UpdateSubresource(constantBuffer, 0, nullptr, &constantBufferData, 0, 0);
+    context->UpdateSubresource(mvpConstantBuffer, 0, nullptr, &mvpConstantBufferData, 0, 0);
+    context->UpdateSubresource(cameraConstantBuffer, 0, nullptr, &cameraConstantBufferData, 0, 0);
     // Clear the render target and the z-buffer.
     const float teal[] = {0.098f, 0.439f, 0.439f, 1.000f};
     context->ClearRenderTargetView(renderTarget, teal);
@@ -250,7 +253,8 @@ void Render()
                 context->IASetInputLayout(sp.inputLayout);
                 // Set up the vertex shader stage.
                 context->VSSetShader(sp.vertexShader, nullptr, 0);
-                context->VSSetConstantBuffers(0, 1, &constantBuffer);
+                context->VSSetConstantBuffers(0, 1, &mvpConstantBuffer);                
+                
 
                 // rasteriser stage
                 if (vi.cullBackface)
@@ -264,6 +268,7 @@ void Render()
 
                 // Set up the pixel shader stage.
                 context->PSSetShader(sp.pixelShader, nullptr, 0);
+                context->PSSetConstantBuffers(1, 1, &cameraConstantBuffer);
                 for (int k = 0; k < ARRAYSIZE(_types); ++k)
                 {
                     int tindex = vi.textureIndex[k];

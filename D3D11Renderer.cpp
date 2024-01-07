@@ -46,10 +46,17 @@ typedef struct _ModelViewProjectionConstantBuffer
 } ModelViewProjectionConstantBuffer;
 static_assert((sizeof(ModelViewProjectionConstantBuffer) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
 
-ModelViewProjectionConstantBuffer constantBufferData;
+ModelViewProjectionConstantBuffer mvpConstantBufferData;
 unsigned int frameCount;
 
-ID3D11Buffer *constantBuffer;
+ID3D11Buffer *mvpConstantBuffer;
+
+struct CameraInfoConstantBuffer {
+    DirectX::XMFLOAT4 cameraPos;
+} cameraConstantBufferData;
+static_assert((sizeof(CameraInfoConstantBuffer) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
+
+ID3D11Buffer *cameraConstantBuffer;
 
 aiTextureType _types[] = {aiTextureType_DIFFUSE, aiTextureType_SPECULAR};
 
@@ -115,10 +122,10 @@ DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.f);
 
 void CreateViewAndPerspective()
 {
-    DirectX::XMStoreFloat4x4(&constantBufferData.world, DirectX::XMMatrixIdentity());
+    DirectX::XMStoreFloat4x4(&mvpConstantBufferData.world, DirectX::XMMatrixIdentity());
 
     DirectX::XMStoreFloat4x4(
-        &constantBufferData.view,
+        &mvpConstantBufferData.view,
         DirectX::XMMatrixTranspose(
             DirectX::XMMatrixLookAtRH(
                 eye,
@@ -129,7 +136,7 @@ void CreateViewAndPerspective()
     float aspectRatioY = aspectRatioX < (16.0f / 9.0f) ? aspectRatioX / (16.0f / 9.0f) : 1.0f;
 
     DirectX::XMStoreFloat4x4(
-        &constantBufferData.projection,
+        &mvpConstantBufferData.projection,
         DirectX::XMMatrixTranspose(
             DirectX::XMMatrixPerspectiveFovRH(
                 2.0f * atanf(tanf(DirectX::XMConvertToRadians(70) *
@@ -191,8 +198,11 @@ HRESULT CreateShaderPair(char *vertexShaderPath, char *pixelShaderPath, D3D11_IN
     delete bytes;
     shaderPair.pixelShader = pixelShader;
 
-    CD3D11_BUFFER_DESC cbDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
-    hr = device->CreateBuffer(&cbDesc, nullptr, &constantBuffer);
+    CD3D11_BUFFER_DESC mvp_cbDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+    hr = device->CreateBuffer(&mvp_cbDesc, nullptr, &mvpConstantBuffer);
+
+    CD3D11_BUFFER_DESC camera_cbDesc(sizeof(CameraInfoConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+    hr = device->CreateBuffer(&camera_cbDesc, nullptr, &cameraConstantBuffer);
 
     fclose(vShader);
     fclose(pShader);
@@ -403,6 +413,8 @@ void CreateDeviceDependentResources()
     };
     CreateShaderPair("VertexShaderShowUVs.cso", "PixelShaderShowUVs.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
     CreateShaderPair("VertexShaderShowNormals.cso", "PixelShaderShowNormals.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
+    CreateShaderPair("VertexShaderShowDiffuse.cso", "PixelShaderShowDiffuse.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
+    CreateShaderPair("VertexShaderShowDirLightingSpecular.cso", "PixelShaderShowDirLightingSpecular.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
 
     build_path_list("models", ".obj", &pathList);
 
