@@ -1,6 +1,8 @@
 - blinn-phong implementation
 - lighting, normal and specular maps
-- figure a way to use world matrix instead of adding a view pos vector
+- #include shared hlsl
+- individual shader parameters for each texture (materials)
+- load specular power from mtl
 
 - c++ program which compile all the shaders in the folder automatically
 

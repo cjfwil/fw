@@ -38,10 +38,10 @@ ps_input vs_main(vs_input input)
     pos = mul(pos, model);
     output.pixelPosition = pos.xyz;
 
-    pos = mul(pos, view);    
+    pos = mul(pos, view);
     pos = mul(pos, projection);
     output.screenPosition = pos;
-        
+
     output.interpolatedUV = input.uv;
 
     float4 normal = float4(input.normal, 1.0f);
@@ -50,30 +50,42 @@ ps_input vs_main(vs_input input)
     return (output);
 }
 
+Texture2D diffuseTexture : register(t0);
+Texture2D specularTexture : register(t1);
+SamplerState samplerState : register(s0);
+
 ps_output ps_main(ps_input input)
 {
     ps_output output;
 
     float3 lightColour = float3(1.0f, 1.0f, 1.0f);
-    float3 objectColour = float3(1.0f, 0.5f, 0.31f);
+    float4 sample = diffuseTexture.Sample(samplerState, input.interpolatedUV);
+    float4 specularSample = specularTexture.Sample(samplerState, input.interpolatedUV);
+    float3 objectColour = sample.rgb;
 
     float3 normal = normalize(input.interpolatedNormal);
 
-    float ambientStrength = 0.1f;
+    float ambientStrength = 0.25f;
     float3 ambient = lightColour * ambientStrength;
-    
+
     float3 lightDir = float3(0.25f, 0.5f, -1.0f);
     float diff = max(dot(lightDir, normal), 0.0f);
     float3 diffuse = lightColour * diff;
 
-    float specularStrength = 0.5f;    
-    float3 viewDir = normalize(cameraInfoPos.xyz - input.pixelPosition);
-    float3 reflectDir = reflect(-lightDir, normal);
+    float3 specular = float3(0.0f, 0.0f, 0.0f);
+    if (diff != 0.0f)
+    {
+        float specularStrength = 0.5f;
+        float3 viewDir = normalize(cameraInfoPos.xyz - input.pixelPosition);
+        float3 reflectDir = reflect(-lightDir, normal);
 
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0f), 32);
-    float3 specular = specularStrength * spec * lightColour;
+        float3 halfwayVec = normalize(viewDir + lightDir);
 
+        float specularPower = pow(2.0f, specularSample.a * 13.0f);
+        float spec = pow(max(dot(normal, halfwayVec), 0.0f), specularPower);
+        specular = specularStrength * spec * lightColour * specularSample.rgb;
+    }
     float3 result = (ambient + diffuse) * objectColour + specular;
-    output.pixelColour = float4(result, 1.0f);    
+    output.pixelColour = float4(saturate(result), 1.0f);
     return (output);
 }

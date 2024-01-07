@@ -27,3 +27,6 @@ fxc /T ps_5_0 /E ps_main /Fo PixelShaderDirBlinnPhong.cso ShaderDirBlinnPhong.hl
 
 fxc /T vs_5_0 /E vs_main /Fo VertexShaderDirBlinnPhongTextured.cso ShaderDirBlinnPhongTextured.hlsl
 fxc /T ps_5_0 /E ps_main /Fo PixelShaderDirBlinnPhongTextured.cso ShaderDirBlinnPhongTextured.hlsl
+
+fxc /T vs_5_0 /E vs_main /Fo VertexShaderMasterShader.cso ShaderMasterShader.hlsl
+fxc /T ps_5_0 /E ps_main /Fo PixelShaderMasterShader.cso ShaderMasterShader.hlsl

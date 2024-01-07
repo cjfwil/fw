@@ -82,7 +82,7 @@ ps_output ps_main(ps_input input)
         float spec = pow(max(dot(normal, halfwayVec), 0.0f), 32);
         specular = specularStrength * spec * lightColour;
     }
-    float3 result = (ambient + diffuse + specular) * objectColour;
+    float3 result = (ambient + diffuse) * objectColour + specular;
     output.pixelColour = float4(result, 1.0f);
     return (output);
 }

@@ -17,7 +17,7 @@ static bool mouseLookOn;
 
 static bool vsyncOn = true;
 
-static int currentShaderIndex = 0;
+static int currentShaderIndex = 6;
 
 void InitImgui()
 {
@@ -203,12 +203,12 @@ void Update()
                 up)));
 
     // Rotate the cube 1 degree per frame.
-    // DirectX::XMStoreFloat4x4(
-    //     &mvpConstantBufferData.world,
-    //     DirectX::XMMatrixTranspose(
-    //         DirectX::XMMatrixRotationY(
-    //             DirectX::XMConvertToRadians(
-    //                 (float)frameCount++))));
+    DirectX::XMStoreFloat4x4(
+        &mvpConstantBufferData.world,
+        DirectX::XMMatrixTranspose(
+            DirectX::XMMatrixRotationY(
+                DirectX::XMConvertToRadians(
+                    (float)frameCount++))));
     if (frameCount == MAXUINT)
         frameCount = 0;
 

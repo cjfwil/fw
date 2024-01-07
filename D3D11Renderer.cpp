@@ -23,7 +23,8 @@
 #include "win32_hash_table.hpp"
 #include "file_navigation.h"
 
-struct shader_pair {
+struct shader_pair
+{
     ID3D11VertexShader *vertexShader;
     ID3D11InputLayout *inputLayout;
     ID3D11PixelShader *pixelShader;
@@ -51,7 +52,8 @@ unsigned int frameCount;
 
 ID3D11Buffer *mvpConstantBuffer;
 
-struct CameraInfoConstantBuffer {
+struct CameraInfoConstantBuffer
+{
     DirectX::XMFLOAT4 cameraPos;
 } cameraConstantBufferData;
 static_assert((sizeof(CameraInfoConstantBuffer) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
@@ -168,7 +170,7 @@ HRESULT CreateShaderPair(char *vertexShaderPath, char *pixelShaderPath, D3D11_IN
     fopen_s(&vShader, vertexShaderPath, "rb");
     bytesRead = fread_s(bytes, destSize, 1, 4096, vShader);
 
-    ID3D11VertexShader* vertexShader;
+    ID3D11VertexShader *vertexShader;
 
     hr = device->CreateVertexShader(
         bytes,
@@ -176,14 +178,14 @@ HRESULT CreateShaderPair(char *vertexShaderPath, char *pixelShaderPath, D3D11_IN
         nullptr,
         &vertexShader);
 
-    shaderPair.vertexShader = vertexShader;    
+    shaderPair.vertexShader = vertexShader;
 
     if (FAILED(hr))
     {
         // TODO:
     }
 
-    ID3D11InputLayout* inputLayout;
+    ID3D11InputLayout *inputLayout;
     hr = device->CreateInputLayout(iaDesc, iaDescSize, bytes, bytesRead, &inputLayout);
     delete bytes;
 
@@ -193,8 +195,8 @@ HRESULT CreateShaderPair(char *vertexShaderPath, char *pixelShaderPath, D3D11_IN
     bytesRead = 0;
     fopen_s(&pShader, pixelShaderPath, "rb");
     bytesRead = fread_s(bytes, destSize, 1, 4096, pShader);
-    ID3D11PixelShader* pixelShader;
-    hr = device->CreatePixelShader(bytes, bytesRead, nullptr, &pixelShader);    
+    ID3D11PixelShader *pixelShader;
+    hr = device->CreatePixelShader(bytes, bytesRead, nullptr, &pixelShader);
     delete bytes;
     shaderPair.pixelShader = pixelShader;
 
@@ -206,7 +208,6 @@ HRESULT CreateShaderPair(char *vertexShaderPath, char *pixelShaderPath, D3D11_IN
 
     fclose(vShader);
     fclose(pShader);
-
 
     shaderPairs.Add(shaderPair);
 
@@ -239,7 +240,10 @@ texture_info CreateTextureForShader(char *path, aiTextureType type)
             for (u_int y = 0; y < height; ++y)
             {
                 unsigned int pixelColour = ((x ^ y) % 2 == 0) ? (u_int)0xffff00ff : (u_int)0xff000000;
-                if (result.slot != 0) pixelColour = 0; //non-diffuse slot
+                if (result.slot == 1)
+                {
+                    pixelColour = 0xffffffff; // specular slot
+                }
                 ((unsigned int *)clrData)[x + y * width] = pixelColour;
             }
         }
@@ -418,6 +422,7 @@ void CreateDeviceDependentResources()
     CreateShaderPair("VertexShaderShowDirLightingDiffuse.cso", "PixelShaderShowDirLightingDiffuse.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
     CreateShaderPair("VertexShaderDirBlinnPhong.cso", "PixelShaderDirBlinnPhong.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
     CreateShaderPair("VertexShaderDirBlinnPhongTextured.cso", "PixelShaderDirBlinnPhongTextured.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
+    CreateShaderPair("VertexShaderMasterShader.cso", "PixelShaderMasterShader.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
 
     build_path_list("models", ".obj", &pathList);
 
@@ -444,7 +449,8 @@ void CreateDeviceDependentResources()
             {
                 // float scale = 0.01f;
                 float scale = 0.08f;
-                if (k == 3) scale = 0.01f;
+                if (k == 3)
+                    scale = 0.01f;
                 VertexPositionUVNormal v = {};
                 v.pos.x = mesh->mVertices[i].x * scale;
                 v.pos.y = mesh->mVertices[i].y * scale;
@@ -541,7 +547,7 @@ void CreateDeviceDependentResources()
                     vi.textureIndex[ti.slot] = kvp->value;
                 }
 
-                vi.cullBackface = (textures.data[vi.textureIndex[0]].hasAlpha) ? false : true;                
+                vi.cullBackface = (textures.data[vi.textureIndex[0]].hasAlpha) ? false : true;
             }
 
             m.meshList.Add(vi);
