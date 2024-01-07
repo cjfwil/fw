@@ -1,5 +1,8 @@
-- phong blinn lighting, normal and specular maps
+- blinn-phong implementation
+- lighting, normal and specular maps
 - figure a way to use world matrix instead of adding a view pos vector
+
+- c++ program which compile all the shaders in the folder automatically
 
 x Mipmapping for textures
 - skybox

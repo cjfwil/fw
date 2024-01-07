@@ -23,9 +23,13 @@
 #include "win32_hash_table.hpp"
 #include "file_navigation.h"
 
-ID3D11VertexShader *vertexShader;
-ID3D11InputLayout *inputLayout;
-ID3D11PixelShader *pixelShader;
+struct shader_pair {
+    ID3D11VertexShader *vertexShader;
+    ID3D11InputLayout *inputLayout;
+    ID3D11PixelShader *pixelShader;
+};
+
+win32_expandable_list<shader_pair> shaderPairs;
 
 ID3D11SamplerState *samplerState;
 
@@ -146,6 +150,8 @@ HRESULT CreateShaderPair(char *vertexShaderPath, char *pixelShaderPath, D3D11_IN
     HRESULT hr = S_OK;
     ID3D11Device *device = d3d11_window.device;
 
+    shader_pair shaderPair;
+
     // TODO: replace std lib
     FILE *vShader, *pShader;
     BYTE *bytes;
@@ -154,32 +160,46 @@ HRESULT CreateShaderPair(char *vertexShaderPath, char *pixelShaderPath, D3D11_IN
     bytes = new BYTE[destSize];
     fopen_s(&vShader, vertexShaderPath, "rb");
     bytesRead = fread_s(bytes, destSize, 1, 4096, vShader);
+
+    ID3D11VertexShader* vertexShader;
+
     hr = device->CreateVertexShader(
         bytes,
         bytesRead,
         nullptr,
         &vertexShader);
 
+    shaderPair.vertexShader = vertexShader;    
+
     if (FAILED(hr))
     {
         // TODO:
     }
 
+    ID3D11InputLayout* inputLayout;
     hr = device->CreateInputLayout(iaDesc, iaDescSize, bytes, bytesRead, &inputLayout);
     delete bytes;
+
+    shaderPair.inputLayout = inputLayout;
 
     bytes = new BYTE[destSize];
     bytesRead = 0;
     fopen_s(&pShader, pixelShaderPath, "rb");
     bytesRead = fread_s(bytes, destSize, 1, 4096, pShader);
-    hr = device->CreatePixelShader(bytes, bytesRead, nullptr, &pixelShader);
+    ID3D11PixelShader* pixelShader;
+    hr = device->CreatePixelShader(bytes, bytesRead, nullptr, &pixelShader);    
     delete bytes;
+    shaderPair.pixelShader = pixelShader;
 
     CD3D11_BUFFER_DESC cbDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
     hr = device->CreateBuffer(&cbDesc, nullptr, &constantBuffer);
 
     fclose(vShader);
     fclose(pShader);
+
+
+    shaderPairs.Add(shaderPair);
+
     return (hr);
 }
 
@@ -381,7 +401,8 @@ void CreateDeviceDependentResources()
         {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,
          0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
-    CreateShaderPair("CubeVertexShaderLighting.cso", "CubePixelShaderLighting.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
+    CreateShaderPair("VertexShaderShowUVs.cso", "PixelShaderShowUVs.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
+    CreateShaderPair("VertexShaderShowNormals.cso", "PixelShaderShowNormals.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
 
     build_path_list("models", ".obj", &pathList);
 

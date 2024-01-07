@@ -29,6 +29,15 @@ public:
         return (availableElements);
     }
 
+    // T Get(SIZE_T index)
+    // {
+    //     T result = NULL;
+    //     if (index < numElements) {
+    //         result = data[index];
+    //     }
+    //     return(result);
+    // }
+
     // TODO: perhaps create an alloc function which is called in both init and expand
     // todo allow for intial reserve size to be specified
     void Init()
@@ -107,7 +116,7 @@ public:
             wsprintfA(buff, "WIN32 ERROR: %d", err);
             OutputDebugStringA(buff);
         }
-    }
+    }    
 };
 
 #endif

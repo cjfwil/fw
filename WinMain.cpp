@@ -17,6 +17,8 @@ static bool mouseLookOn;
 
 static bool vsyncOn = true;
 
+static int currentShaderIndex = 0;
+
 void InitImgui()
 {
     // Setup Dear ImGui context
@@ -71,6 +73,15 @@ void StartImgui()
     {
         ImGui::PushID(i);
         ImGui::Checkbox("Visible", &(modelList.data[i].enabled));
+        ImGui::PopID();
+    }
+    ImGui::End();
+
+    ImGui::Begin("Shader Pairs");
+    for (int i = 0; i < shaderPairs.numElements; ++i)
+    {
+        ImGui::PushID(i);
+        ImGui::RadioButton("shader", &currentShaderIndex, i);
         ImGui::PopID();
     }
     ImGui::End();
@@ -229,13 +240,16 @@ void Render()
                 // Set up the IA stage by setting the input topology and layout.
                 UINT stride = sizeof(VertexPositionUVNormal);
                 UINT offset = 0;
+                
                 context->IASetVertexBuffers(0, 1, &vi.vertexBuffer, &stride, &offset);
                 context->IASetIndexBuffer(vi.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
+                shader_pair sp = shaderPairs.data[currentShaderIndex];
+
                 context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-                context->IASetInputLayout(inputLayout);
+                context->IASetInputLayout(sp.inputLayout);
                 // Set up the vertex shader stage.
-                context->VSSetShader(vertexShader, nullptr, 0);
+                context->VSSetShader(sp.vertexShader, nullptr, 0);
                 context->VSSetConstantBuffers(0, 1, &constantBuffer);
 
                 // rasteriser stage
@@ -249,11 +263,11 @@ void Render()
                 }
 
                 // Set up the pixel shader stage.
-                context->PSSetShader(pixelShader, nullptr, 0);
+                context->PSSetShader(sp.pixelShader, nullptr, 0);
                 for (int k = 0; k < ARRAYSIZE(_types); ++k)
                 {
                     int tindex = vi.textureIndex[k];
-                    texture_info ti = textures.data[tindex];                    
+                    texture_info ti = textures.data[tindex];
                     context->PSSetShaderResources(ti.slot, 1u, &ti.textureView);
                 }
                 context->PSSetSamplers(0, 1, &samplerState);
