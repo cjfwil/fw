@@ -18,3 +18,6 @@ fxc /T ps_5_0 /E ps_main /Fo PixelShaderShowDiffuse.cso ShaderShowDiffuse.hlsl
 
 fxc /T vs_5_0 /E vs_main /Fo VertexShaderShowDirLightingSpecular.cso ShaderShowDirLightingSpecular.hlsl
 fxc /T ps_5_0 /E ps_main /Fo PixelShaderShowDirLightingSpecular.cso ShaderShowDirLightingSpecular.hlsl
+
+fxc /T vs_5_0 /E vs_main /Fo VertexShaderShowDirLightingDiffuse.cso ShaderShowDirLightingDiffuse.hlsl
+fxc /T ps_5_0 /E ps_main /Fo PixelShaderShowDirLightingDiffuse.cso ShaderShowDirLightingDiffuse.hlsl

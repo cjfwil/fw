@@ -54,15 +54,26 @@ ps_output ps_main(ps_input input)
 {
     ps_output output;
 
-    float specularStrength = 0.5f;
+    float3 lightColour = float3(1.0f, 1.0f, 1.0f);
+    float3 objectColour = float3(1.0f, 0.5f, 0.31f);
+
+    float3 normal = normalize(input.interpolatedNormal);
+
+    float ambientStrength = 0.1f;
+    float3 ambient = lightColour * ambientStrength;
+    
     float3 lightDir = float3(0.25f, 0.5f, -1.0f);
+    float diff = max(dot(lightDir, normal), 0.0f);
+    float3 diffuse = lightColour * diff;
+
+    float specularStrength = 0.5f;    
     float3 viewDir = normalize(cameraInfoPos.xyz - input.pixelPosition);
-    float3 reflectDir = reflect(-lightDir, normalize(input.interpolatedNormal));
+    float3 reflectDir = reflect(-lightDir, normal);
 
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0f), 16);
-    float3 specular = specularStrength * spec; // times light colour for colour
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0f), 32);
+    float3 specular = specularStrength * spec * lightColour;
 
-    float3 result = specular;
+    float3 result = (ambient + diffuse + specular) * objectColour;
     output.pixelColour = float4(result, 1.0f);    
     return (output);
 }
