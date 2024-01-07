@@ -416,6 +416,8 @@ void CreateDeviceDependentResources()
     CreateShaderPair("VertexShaderShowDiffuse.cso", "PixelShaderShowDiffuse.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
     CreateShaderPair("VertexShaderShowDirLightingSpecular.cso", "PixelShaderShowDirLightingSpecular.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
     CreateShaderPair("VertexShaderShowDirLightingDiffuse.cso", "PixelShaderShowDirLightingDiffuse.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
+    CreateShaderPair("VertexShaderDirBlinnPhong.cso", "PixelShaderDirBlinnPhong.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
+    CreateShaderPair("VertexShaderDirBlinnPhongTextured.cso", "PixelShaderDirBlinnPhongTextured.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
 
     build_path_list("models", ".obj", &pathList);
 

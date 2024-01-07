@@ -21,3 +21,9 @@ fxc /T ps_5_0 /E ps_main /Fo PixelShaderShowDirLightingSpecular.cso ShaderShowDi
 
 fxc /T vs_5_0 /E vs_main /Fo VertexShaderShowDirLightingDiffuse.cso ShaderShowDirLightingDiffuse.hlsl
 fxc /T ps_5_0 /E ps_main /Fo PixelShaderShowDirLightingDiffuse.cso ShaderShowDirLightingDiffuse.hlsl
+
+fxc /T vs_5_0 /E vs_main /Fo VertexShaderDirBlinnPhong.cso ShaderDirBlinnPhong.hlsl
+fxc /T ps_5_0 /E ps_main /Fo PixelShaderDirBlinnPhong.cso ShaderDirBlinnPhong.hlsl
+
+fxc /T vs_5_0 /E vs_main /Fo VertexShaderDirBlinnPhongTextured.cso ShaderDirBlinnPhongTextured.hlsl
+fxc /T ps_5_0 /E ps_main /Fo PixelShaderDirBlinnPhongTextured.cso ShaderDirBlinnPhongTextured.hlsl
