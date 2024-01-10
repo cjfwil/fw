@@ -17,7 +17,9 @@ static bool mouseLookOn;
 
 static bool vsyncOn = true;
 
-static int currentShaderIndex = 6;
+static int currentShaderIndex = 7;
+
+static bool isRotating = false;
 
 void InitImgui()
 {
@@ -68,7 +70,7 @@ void StartImgui()
     }
     ImGui::End();
 
-    ImGui::Begin("Enable");
+    ImGui::Begin("Visible Models");
     for (int i = 0; i < modelList.numElements; ++i)
     {
         ImGui::PushID(i);
@@ -84,6 +86,10 @@ void StartImgui()
         ImGui::RadioButton("shader", &currentShaderIndex, i);
         ImGui::PopID();
     }
+    ImGui::End();
+
+    ImGui::Begin("Controls");
+    ImGui::Checkbox("Rotate Model", &isRotating);
     ImGui::End();
 }
 
@@ -203,12 +209,14 @@ void Update()
                 up)));
 
     // Rotate the cube 1 degree per frame.
+    if (isRotating) {
     DirectX::XMStoreFloat4x4(
         &mvpConstantBufferData.world,
         DirectX::XMMatrixTranspose(
             DirectX::XMMatrixRotationY(
                 DirectX::XMConvertToRadians(
                     (float)frameCount++))));
+    }
     if (frameCount == MAXUINT)
         frameCount = 0;
 

@@ -242,7 +242,7 @@ texture_info CreateTextureForShader(char *path, aiTextureType type)
                 unsigned int pixelColour = ((x ^ y) % 2 == 0) ? (u_int)0xffff00ff : (u_int)0xff000000;
                 if (result.slot == 1)
                 {
-                    pixelColour = 0xffffffff; // specular slot
+                    pixelColour = 0; // specular slot
                 }
                 ((unsigned int *)clrData)[x + y * width] = pixelColour;
             }

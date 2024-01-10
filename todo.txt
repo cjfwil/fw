@@ -4,6 +4,10 @@
 - individual shader parameters for each texture (materials)
 - load specular power from mtl
 
+- shadow mapping
+
+- render vertex colours? allow vertex colour painting in editor
+
 - c++ program which compile all the shaders in the folder automatically
 
 x Mipmapping for textures
