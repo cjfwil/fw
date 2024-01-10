@@ -91,6 +91,17 @@ void StartImgui()
     ImGui::Begin("Controls");
     ImGui::Checkbox("Rotate Model", &isRotating);
     ImGui::End();
+
+    static bool alignWithLight = false;
+    ImGui::Begin("Camera Info");
+    ImGui::Text("Camera Look At; %f, %f, %f", DirectX::XMVectorGetX(at), DirectX::XMVectorGetY(at), DirectX::XMVectorGetZ(at));
+    ImGui::Checkbox("Camera View Alinged With Light", &alignWithLight);
+    ImGui::End();
+
+    if (alignWithLight)
+    {
+        at = DirectX::XMVectorAdd(eye, DirectX::XMVectorSet(-0.25f, -0.5f, 1.0f, 0.0f));
+    }
 }
 
 void EndImgui()
@@ -209,13 +220,14 @@ void Update()
                 up)));
 
     // Rotate the cube 1 degree per frame.
-    if (isRotating) {
-    DirectX::XMStoreFloat4x4(
-        &mvpConstantBufferData.world,
-        DirectX::XMMatrixTranspose(
-            DirectX::XMMatrixRotationY(
-                DirectX::XMConvertToRadians(
-                    (float)frameCount++))));
+    if (isRotating)
+    {
+        DirectX::XMStoreFloat4x4(
+            &mvpConstantBufferData.world,
+            DirectX::XMMatrixTranspose(
+                DirectX::XMMatrixRotationY(
+                    DirectX::XMConvertToRadians(
+                        (float)frameCount++))));
     }
     if (frameCount == MAXUINT)
         frameCount = 0;
@@ -251,7 +263,7 @@ void Render()
                 // Set up the IA stage by setting the input topology and layout.
                 UINT stride = sizeof(VertexPositionUVNormal);
                 UINT offset = 0;
-                
+
                 context->IASetVertexBuffers(0, 1, &vi.vertexBuffer, &stride, &offset);
                 context->IASetIndexBuffer(vi.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
@@ -261,8 +273,7 @@ void Render()
                 context->IASetInputLayout(sp.inputLayout);
                 // Set up the vertex shader stage.
                 context->VSSetShader(sp.vertexShader, nullptr, 0);
-                context->VSSetConstantBuffers(0, 1, &mvpConstantBuffer);                
-                
+                context->VSSetConstantBuffers(0, 1, &mvpConstantBuffer);
 
                 // rasteriser stage
                 if (vi.cullBackface)

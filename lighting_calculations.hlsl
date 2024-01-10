@@ -8,7 +8,20 @@
 // 0 to 1, how dark is this pixel. 0: darkness, 1: lightness
 inline float diffuse_shading(float3 normal, float3 lightDir)
 {
+    // normalise vectors here? Should we expect them to be normalised
+    // and have that be the responsibility of the calling shader?
     float diff = max(dot(normalize(lightDir), normalize(normal)), 0.0f);
+    return (diff);
+}
+
+// for meshes with no thickness, ie leaves and chains, open top hollow objects
+inline float diffuse_shading_double_sided(float3 normal, float3 lightDir, float3 viewDir)
+{
+    // if eye is looking at the backside, then flip the normal
+    float3 new_normal = normal;
+    float viewFace = dot(viewDir, normal);
+    if (viewFace < 0.0f) new_normal = -normal;
+    float diff = max(dot(normalize(lightDir), normalize(new_normal)), 0.0f);
     return (diff);
 }
 

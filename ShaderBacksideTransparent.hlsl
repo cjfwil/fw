@@ -17,13 +17,15 @@ ps_output ps_main(ps_input input)
     clip(diffuseAlpha < 0.1f ? -1 : 1);
 
     float4 specularSample = get_sample(specularTexture, input.interpolatedUV);
-    float3 objectColour = diffuseSample.rgb;
+    //float3 objectColour = diffuseSample.rgb;
+    float3 objectColour = float3(0.25, 0.8f, 0.4f);
 
     float3 normal = normalize(input.interpolatedNormal);
 
     float3 ambient = lightColour * ambientStrength;
 
-    float diff = diffuse_shading(normal, lightDir);
+    float3 viewDir = normalize(cameraInfoPos.xyz - input.pixelPosition);
+    float diff = diffuse_shading_double_sided(normal, lightDir, viewDir);
     float3 diffuse = lightColour * diff;
 
     float3 specular = float3(0.0f, 0.0f, 0.0f);
