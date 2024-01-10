@@ -23,3 +23,6 @@ fxc /T ps_5_0 /E ps_main /Fo PixelShaderDirBlinnPhongTextured.cso ShaderDirBlinn
 
 fxc /T vs_5_0 /E vs_main /Fo VertexShaderMasterShader.cso ShaderMasterShader.hlsl -nologo
 fxc /T ps_5_0 /E ps_main /Fo PixelShaderMasterShader.cso ShaderMasterShader.hlsl -nologo
+
+fxc /T vs_5_0 /E vs_main /Fo VertexShaderBacksideTransparent.cso ShaderBacksideTransparent.hlsl -nologo
+fxc /T ps_5_0 /E ps_main /Fo PixelShaderBacksideTransparent.cso ShaderBacksideTransparent.hlsl -nologo

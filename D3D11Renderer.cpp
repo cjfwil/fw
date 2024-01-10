@@ -418,11 +418,12 @@ void CreateDeviceDependentResources()
     CreateShaderPair("VertexShaderShowUVs.cso", "PixelShaderShowUVs.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
     CreateShaderPair("VertexShaderShowNormals.cso", "PixelShaderShowNormals.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
     CreateShaderPair("VertexShaderShowDiffuse.cso", "PixelShaderShowDiffuse.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
-    CreateShaderPair("VertexShaderShowDirLightingSpecular.cso", "PixelShaderShowDirLightingSpecular.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
     CreateShaderPair("VertexShaderShowDirLightingDiffuse.cso", "PixelShaderShowDirLightingDiffuse.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
+    CreateShaderPair("VertexShaderShowDirLightingSpecular.cso", "PixelShaderShowDirLightingSpecular.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
     CreateShaderPair("VertexShaderDirBlinnPhong.cso", "PixelShaderDirBlinnPhong.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
     CreateShaderPair("VertexShaderDirBlinnPhongTextured.cso", "PixelShaderDirBlinnPhongTextured.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
     CreateShaderPair("VertexShaderMasterShader.cso", "PixelShaderMasterShader.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
+    CreateShaderPair("VertexShaderBacksideTransparent.cso", "PixelShaderBacksideTransparent.cso", iaDescNormals, ARRAYSIZE(iaDescNormals));
 
     build_path_list("models", ".obj", &pathList);
 
