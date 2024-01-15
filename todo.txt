@@ -40,4 +40,3 @@ x dont reload duplicate textures <<- implement hash table for this
 
 - every texture has its own blend state not all materials are set to having alpha blend
 
-**test commit**
