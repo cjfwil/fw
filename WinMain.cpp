@@ -245,8 +245,8 @@ void Render()
     context->UpdateSubresource(mvpConstantBuffer, 0, nullptr, &mvpConstantBufferData, 0, 0);
     context->UpdateSubresource(cameraConstantBuffer, 0, nullptr, &cameraConstantBufferData, 0, 0);
     // Clear the render target and the z-buffer.
-    const float teal[] = {0.098f, 0.439f, 0.439f, 1.000f};
-    context->ClearRenderTargetView(renderTarget, teal);
+    const float blue[] = {0.098f, 0.2398f, 0.439f, 1.000f};
+    context->ClearRenderTargetView(renderTarget, blue);
     context->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
     // Set the render target.
     context->OMSetRenderTargets(1, &renderTarget, depthStencil);
