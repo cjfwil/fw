@@ -1,4 +1,3 @@
-#*.json
 *.exe
 *.ilk
 *.pdb
@@ -6,6 +5,3 @@
 !models/*.obj
 !models/**/*.obj
 *.cso
-*.lib
-
-imgui.ini

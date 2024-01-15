@@ -16,7 +16,7 @@
                 "/link",
                 "/LIBPATH:build/",
                 "imgui.lib",                       
-                "assimp-vc143-mt.lib",
+                "assimp/assimp-vc143-mt.lib",
                 "/MACHINE:x64"
             ],
             "options": {

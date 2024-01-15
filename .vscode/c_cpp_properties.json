@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/imgui/",
-                "C:/Program Files/Assimp/include"
+                "C:/Program Files/Assimp/include"                
             ]            
         }
     ],
