@@ -39,3 +39,5 @@ x dont reload duplicate textures <<- implement hash table for this
 - add point light
 
 - every texture has its own blend state not all materials are set to having alpha blend
+
+**test commit**
